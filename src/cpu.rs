@@ -18,6 +18,7 @@ pub struct Cpu {
 }
 
 impl Cpu {
+
     pub fn new() -> Self {
         Cpu{
             stack: Vec::<u8>::new(),
@@ -41,9 +42,9 @@ impl Cpu {
             [4,x,_,_] => {print_instruction(i,&format!("SNE V{}, {:X}", x,v[1]),"");}, // skip instruction if Vx != kk
             [5,x,y,_] => {print_instruction(i,&format!("SNE V{}, V{}", x,y),"");}, // skip instruction if Vx == Vy */
             [6,x,_,_] => {instructions::ld_vx(self,x,opcode);}, // load kk into Vx 
-            /*[7,x,_,_] => {print_instruction(i,&format!("ADD V{}, {:X}", x,v[1]),"");}, // add kk to Vx
-            [8,x,y,0] => {print_instruction(i,&format!("LD V{}, V{}", x,y),"");}, // set Vx = Vy
-            [8,x,y,1] => {print_instruction(i,&format!("OR V{}, V{}", x,y),"");}, // Vx = Vx OR Vy
+            [7,x,_,_] => {instructions::add_vx_kk(self,x,opcode);}, // add kk to Vx
+            [8,x,y,0] => {instructions::ld_vx_vy(self,x,y);}, // set Vx = Vy
+            /*[8,x,y,1] => {print_instruction(i,&format!("OR V{}, V{}", x,y),"");}, // Vx = Vx OR Vy
             [8,x,y,2] => {print_instruction(i,&format!("AND V{}, V{}", x,y),"");}, // Vx = Vx AND Vy
             [8,x,y,3] => {print_instruction(i,&format!("XOR V{}, V{}", x,y),"");}, // Vx = Vx XOR Vy
             [8,x,y,4] => {print_instruction(i,&format!("ADD V{}, V{}", x,y),"");}, // Vx = Vx + Vy, VF = carry
@@ -88,5 +89,22 @@ pub mod instructions {
         let value = (opcode & 0x00FF) as u8;
         cpu.general_registers[reg as usize] = value;
     }
+
+    // Vx = Vx + kk
+    pub fn add_vx_kk(cpu: &mut Cpu, reg: u16, opcode: u16) {
+        let value = opcode & 0x00FF;
+
+        // calculate sum in a u16 for overflow safety
+        let tmp = (cpu.general_registers[reg as usize] as u16) + value;
+ 
+        // only place the last 8 bits into the register
+        cpu.general_registers[reg as usize] = (tmp & 0xFF) as u8;
+    }
+
+    pub fn ld_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
+        cpu.general_registers[regx as usize] =
+        cpu.general_registers[regy as usize];
+    }
 }
+
     
