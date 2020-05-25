@@ -118,7 +118,8 @@ pub mod instructions {
     }
 
     
-    /*  Performs a bitwise OR on the values of Vx and Vy, 
+    /*  
+     *  Performs a bitwise OR on the values of Vx and Vy, 
      *  then stores the result in Vx. A bitwise OR compares 
      *  the corrseponding bits from two values, and if either 
      *  bit is 1, then the same bit in the result is also 1. 
@@ -131,7 +132,8 @@ pub mod instructions {
     }
 
     
-    /*  Performs a bitwise AND on the values of Vx and Vy, 
+    /*  
+     *  Performs a bitwise AND on the values of Vx and Vy, 
      *  then stores the result in Vx. A bitwise AND compares 
      *  the corrseponding bits from two values, and if both 
      *  bits are 1, then the same bit in the result is also 1. 
@@ -143,7 +145,8 @@ pub mod instructions {
         cpu.general_registers[regy as usize];
     }
 
-    /*  Performs a bitwise exclusive OR on the values of Vx and Vy,
+    /*  
+     *  Performs a bitwise exclusive OR on the values of Vx and Vy,
      *  then stores the result in Vx. An exclusive OR compares the 
      *  corrseponding bits from two values, and if the bits are not 
      *  both the same, then the corresponding bit in the result is 
@@ -155,25 +158,32 @@ pub mod instructions {
         cpu.general_registers[regy as usize];
     }
 
-    /*  The values of Vx and Vy are added together. If the result is 
+    /*  
+     *  The values of Vx and Vy are added together. If the result is 
      *  greater than 8 bits (i.e., > 255,) VF is set to 1, otherwise 0. 
      *  Only the lowest 8 bits of the result are kept, and stored in Vx.
      */
     pub fn add_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
-        let lvalue = cpu.general_registers[regx as usize] as u16;
-        let rvalue = cpu.general_registers[regy as usize] as u16;
-        if lvalue + rvalue  > 0xFF {
+        let orig_value = cpu.general_registers[regx as usize];
+
+        // perform the addition safely
+        cpu.general_registers[regx as usize] =
+            (orig_value as u8)
+            .wrapping_add(cpu.general_registers[regy as usize] as u8);
+
+        // determine if the value was wrapped by checking
+        // the value relative to the previous value, if less
+        // than orig_value then the register was overflowed
+        if cpu.general_registers[regx as usize]  < orig_value {
             cpu.vf_register = 1u8;
-        }else {
+        } else {
             cpu.vf_register = 0u8;
         } 
-        cpu.general_registers[regx as usize] =
-        (lvalue as u8).wrapping_add(rvalue as u8);
     }
 
     /*  
-     *  If Vx > Vy, then VF is set to 1, otherwise 0. Then Vy is 
-     *  subtracted from Vx, and the results stored in Vx.
+     *  Subtract the value of register VY from register VX
+     *  If Vx > Vy, then VF is set to 1, otherwise 0. 
      */
     pub fn sub_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
         let lvalue = cpu.general_registers[regx as usize];
