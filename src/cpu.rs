@@ -44,12 +44,12 @@ impl Cpu {
             [6,x,_,_] => {instructions::ld_vx(self,x,opcode);}, // load kk into Vx 
             [7,x,_,_] => {instructions::add_vx_kk(self,x,opcode);}, // add kk to Vx
             [8,x,y,0] => {instructions::ld_vx_vy(self,x,y);}, // set Vx = Vy
-            /*[8,x,y,1] => {print_instruction(i,&format!("OR V{}, V{}", x,y),"");}, // Vx = Vx OR Vy
-            [8,x,y,2] => {print_instruction(i,&format!("AND V{}, V{}", x,y),"");}, // Vx = Vx AND Vy
-            [8,x,y,3] => {print_instruction(i,&format!("XOR V{}, V{}", x,y),"");}, // Vx = Vx XOR Vy
-            [8,x,y,4] => {print_instruction(i,&format!("ADD V{}, V{}", x,y),"");}, // Vx = Vx + Vy, VF = carry
-            [8,x,y,5] => {print_instruction(i,&format!("SUB V{}, V{}", x,y),"");}, // Vx = Vx - Vy, set VF = NOT borrow.
-            [8,x,y,6] => {print_instruction(i,&format!("SHR V{}, {{,V{}}}", x,y),"");}, // shift right
+            [8,x,y,1] => {instructions::or_vx_vy(self,x,y);}, // Vx = Vx OR Vy
+            [8,x,y,2] => {instructions::and_vx_vy(self,x,y);}, // Vx = Vx AND Vy
+            [8,x,y,3] => {instructions::xor_vx_vy(self,x,y);}, // Vx = Vx XOR Vy
+            [8,x,y,4] => {instructions::add_vx_vy(self,x,y);}, // Vx = Vx + Vy, VF = carry
+            [8,x,y,5] => {instructions::sub_vx_vy(self,x,y);}, // Vx = Vx - Vy, set VF = NOT borrow.
+            /*[8,x,y,6] => {print_instruction(i,&format!("SHR V{}, {{,V{}}}", x,y),"");}, // shift right
             [8,x,y,7] => {print_instruction(i,&format!("SUBN V{}, V{}", x,y),"");}, 
             [8,x,y,0xE] => {print_instruction(i,&format!("SHL V{}, V{}", x,y),"");}, //shift left
             [9,x,y,0] => {print_instruction(i,&format!("SNE V{}, V{}", x,y),"");}, // same as before?
@@ -85,25 +85,106 @@ pub mod instructions {
         cpu.program_counter = addr;
     }
 
+    /*
+     *  Loads the value kk into register Vx.
+     */ 
     pub fn ld_vx(cpu: &mut Cpu, reg: u16, opcode: u16) {
         let value = (opcode & 0x00FF) as u8;
         cpu.general_registers[reg as usize] = value;
     }
 
-    // Vx = Vx + kk
+    /*
+     *  Adds the value kk to the value of register Vx, 
+     *  then stores the result in Vx. 
+     */
     pub fn add_vx_kk(cpu: &mut Cpu, reg: u16, opcode: u16) {
         let value = opcode & 0x00FF;
 
-        // calculate sum in a u16 for overflow safety
+        /*calculate sum in a u16 for overflow safety
         let tmp = (cpu.general_registers[reg as usize] as u16) + value;
  
         // only place the last 8 bits into the register
-        cpu.general_registers[reg as usize] = (tmp & 0xFF) as u8;
+        cpu.general_registers[reg as usize] = (tmp & 0xFF) as u8; */
+        cpu.general_registers[reg as usize] = 
+        cpu.general_registers[reg as usize].wrapping_add(value as u8);
     }
 
+    /*
+     *  Stores the value of register Vy in register Vx.
+     */
     pub fn ld_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
         cpu.general_registers[regx as usize] =
         cpu.general_registers[regy as usize];
+    }
+
+    
+    /*  Performs a bitwise OR on the values of Vx and Vy, 
+     *  then stores the result in Vx. A bitwise OR compares 
+     *  the corrseponding bits from two values, and if either 
+     *  bit is 1, then the same bit in the result is also 1. 
+     *  Otherwise, it is 0. 
+     */
+    pub fn or_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
+        cpu.general_registers[regx as usize] =
+        cpu.general_registers[regx as usize] |
+        cpu.general_registers[regy as usize];
+    }
+
+    
+    /*  Performs a bitwise AND on the values of Vx and Vy, 
+     *  then stores the result in Vx. A bitwise AND compares 
+     *  the corrseponding bits from two values, and if both 
+     *  bits are 1, then the same bit in the result is also 1. 
+     *  Otherwise, it is 0. 
+     */
+    pub fn and_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
+        cpu.general_registers[regx as usize] =
+        cpu.general_registers[regx as usize] &
+        cpu.general_registers[regy as usize];
+    }
+
+    /*  Performs a bitwise exclusive OR on the values of Vx and Vy,
+     *  then stores the result in Vx. An exclusive OR compares the 
+     *  corrseponding bits from two values, and if the bits are not 
+     *  both the same, then the corresponding bit in the result is 
+     *  set to 1. Otherwise, it is 0. 
+     */
+    pub fn xor_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
+        cpu.general_registers[regx as usize] =
+        cpu.general_registers[regx as usize] ^
+        cpu.general_registers[regy as usize];
+    }
+
+    /*  The values of Vx and Vy are added together. If the result is 
+     *  greater than 8 bits (i.e., > 255,) VF is set to 1, otherwise 0. 
+     *  Only the lowest 8 bits of the result are kept, and stored in Vx.
+     */
+    pub fn add_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
+        let lvalue = cpu.general_registers[regx as usize] as u16;
+        let rvalue = cpu.general_registers[regy as usize] as u16;
+        if lvalue + rvalue  > 0xFF {
+            cpu.vf_register = 1u8;
+        }else {
+            cpu.vf_register = 0u8;
+        } 
+        cpu.general_registers[regx as usize] =
+        (lvalue as u8).wrapping_add(rvalue as u8);
+    }
+
+    /*  
+     *  If Vx > Vy, then VF is set to 1, otherwise 0. Then Vy is 
+     *  subtracted from Vx, and the results stored in Vx.
+     */
+    pub fn sub_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
+        let lvalue = cpu.general_registers[regx as usize];
+        let rvalue = cpu.general_registers[regy as usize];
+        if lvalue > rvalue {
+            cpu.vf_register = 1u8;
+        }else {
+            cpu.vf_register = 0u8;
+        } 
+        cpu.general_registers[regx as usize] =
+            lvalue.wrapping_sub(rvalue);
     }
 }
 

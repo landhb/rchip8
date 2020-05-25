@@ -9,8 +9,9 @@ mod cpu;
 use crate::cpu::MEM_SIZE;
 use crate::cpu::TXT_OFFSET;
 
+
 #[cfg(test)]
-mod test_instructions;
+mod test_instructions; 
 
 /*
     Memory Map:
