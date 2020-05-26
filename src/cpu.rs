@@ -49,10 +49,10 @@ impl Cpu {
             [8,x,y,3] => {instructions::xor_vx_vy(self,x,y);}, // Vx = Vx XOR Vy
             [8,x,y,4] => {instructions::add_vx_vy(self,x,y);}, // Vx = Vx + Vy, VF = carry
             [8,x,y,5] => {instructions::sub_vx_vy(self,x,y);}, // Vx = Vx - Vy, set VF = NOT borrow.
-            /*[8,x,y,6] => {print_instruction(i,&format!("SHR V{}, {{,V{}}}", x,y),"");}, // shift right
-            [8,x,y,7] => {print_instruction(i,&format!("SUBN V{}, V{}", x,y),"");}, 
-            [8,x,y,0xE] => {print_instruction(i,&format!("SHL V{}, V{}", x,y),"");}, //shift left
-            [9,x,y,0] => {print_instruction(i,&format!("SNE V{}, V{}", x,y),"");}, // same as before?
+            [8,x,y,6] => {instructions::shr_vx_vy(self,x,y);}, // shift right
+            [8,x,y,7] => {instructions::subn_vx_vy(self,x,y);}, 
+            [8,x,y,0xE] => {instructions::shl_vx_vy(self,x,y);}, //shift left
+            /*[9,x,y,0] => {print_instruction(i,&format!("SNE V{}, V{}", x,y),"");}, // same as before?
             [0xA,n,_,_] => {print_instruction(i,&format!("LD I, 0x{:X}{:X}", n,v[1]),"");},
             [0xB,n,_,_] => {print_instruction(i,&format!("JP V0, 0x{:X}{:X}", n,v[1]),"");},
             [0xC,x,_,_] => {print_instruction(i,&format!("JP V{}, 0x{:X}", x,v[1]),"");},
@@ -164,21 +164,20 @@ pub mod instructions {
      *  Only the lowest 8 bits of the result are kept, and stored in Vx.
      */
     pub fn add_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
-        let orig_value = cpu.general_registers[regx as usize];
 
         // perform the addition safely
-        cpu.general_registers[regx as usize] =
-            (orig_value as u8)
-            .wrapping_add(cpu.general_registers[regy as usize] as u8);
+        match cpu.general_registers[regx as usize]
+            .overflowing_add(cpu.general_registers[regy as usize] as u8) {
 
-        // determine if the value was wrapped by checking
-        // the value relative to the previous value, if less
-        // than orig_value then the register was overflowed
-        if cpu.general_registers[regx as usize]  < orig_value {
-            cpu.vf_register = 1u8;
-        } else {
-            cpu.vf_register = 0u8;
-        } 
+            (v, true) => {
+                cpu.general_registers[regx as usize] = v;
+                cpu.vf_register = 1u8;
+            }
+            (v,false) => {
+                cpu.general_registers[regx as usize] = v;
+                cpu.vf_register = 0u8;
+            }
+        }
     }
 
     /*  
@@ -196,6 +195,54 @@ pub mod instructions {
         cpu.general_registers[regx as usize] =
             lvalue.wrapping_sub(rvalue);
     }
+
+    /* 
+     * Store the value of register VY shifted right one bit in register VX
+     * Set register VF to the least significant bit prior to the shift
+     */
+    pub fn shr_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
+        if cpu.general_registers[regy as usize] & 0x1 == 0x1 {
+            cpu.vf_register = 1u8;
+        }
+        else {
+            cpu.vf_register = 0u8;
+        }
+        cpu.general_registers[regx as usize] =
+        cpu.general_registers[regy as usize].wrapping_shr(1);
+    }
+
+     /* 
+     *  Set register VX to the value of VY minus VX
+     *  Set VF to 00 if a borrow occurs
+     *  Set VF to 01 if a borrow does not occur
+     */
+    pub fn subn_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16) {
+        let rvalue = cpu.general_registers[regx as usize];
+        let lvalue = cpu.general_registers[regy as usize];
+        if lvalue > rvalue {
+            cpu.vf_register = 1u8;
+        }else {
+            cpu.vf_register = 0u8;
+        } 
+        cpu.general_registers[regx as usize] =
+            lvalue.wrapping_sub(rvalue);
+    }
+
+    /* 
+     *  Store the value of register VY shifted left one bit in register VX
+     *  Set register VF to the most significant bit prior to the shift
+     */
+    pub fn shl_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
+        if cpu.general_registers[regy as usize] & 0x1 == 0xF {
+            cpu.vf_register = 1u8;
+        }
+        else {
+            cpu.vf_register = 0u8;
+        }
+        cpu.general_registers[regx as usize] =
+        cpu.general_registers[regy as usize].wrapping_shl(1);
+    }
 }
+
 
     

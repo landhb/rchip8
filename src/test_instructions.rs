@@ -197,4 +197,63 @@ mod test_instructions {
         assert!(cpu.general_registers[1] == 0xfb);
         assert!(cpu.vf_register == 0);
     }
+
+    #[test]
+    fn test_shr_vx_vy() {
+
+        let mut cpu = cpu::Cpu::new();
+
+        // LD V1, 0xff
+        assert!(cpu.general_registers[1] == 0);
+        cpu.execute_instruction(0x61ff);       
+        assert!(cpu.general_registers[1] == 0xff);
+
+        // SHR v0, v1
+        // test VF == 1
+        assert!(cpu.general_registers[0] == 0);
+        cpu.execute_instruction(0x8016);
+        assert!(cpu.general_registers[0] == 0x7f);
+        assert!(cpu.vf_register == 1);
+
+        // LD V1, 2
+        // test VF == 0
+        cpu.execute_instruction(0x6102);       
+        assert!(cpu.general_registers[1] == 0x02);
+        cpu.execute_instruction(0x8016);
+        assert!(cpu.general_registers[0] == 0x1);
+        assert!(cpu.vf_register == 0);
+    }
+
+    #[test]
+    fn test_subn_vx_vy() {
+        let mut cpu = cpu::Cpu::new();
+
+        // LD V0, 0xff
+        assert!(cpu.general_registers[0] == 0);
+        cpu.execute_instruction(0x60ff);       
+        assert!(cpu.general_registers[0] == 0xff);
+
+        // LD V1, 0x05
+        assert!(cpu.general_registers[1] == 0);
+        cpu.execute_instruction(0x6105);       
+        assert!(cpu.general_registers[1] == 0x05);
+
+        // SUBN V1, V0
+        // V1 = V0 - V1 = 255 - 5 = 250
+        // VF register should equal 0x1
+        cpu.execute_instruction(0x8107); 
+        assert!(cpu.general_registers[1] == 0xfa);
+        assert!(cpu.vf_register == 1);
+
+        // set V0 < V1 for next test
+        cpu.execute_instruction(0x6005);       
+        assert!(cpu.general_registers[0] == 0x5);
+
+        // SUB V1, V0
+        // V1 = V0 - V1 = 5 - 250 = 11
+        // VF register should equal 0x0
+        cpu.execute_instruction(0x8107); 
+        assert!(cpu.general_registers[1] == 0xb);
+        assert!(cpu.vf_register == 0);
+    }
 }
