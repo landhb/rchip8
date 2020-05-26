@@ -8,6 +8,7 @@ use byteorder::{ByteOrder, BigEndian};
 mod cpu;
 use crate::cpu::MEM_SIZE;
 use crate::cpu::TXT_OFFSET;
+mod instructions;
 
 
 #[cfg(test)]

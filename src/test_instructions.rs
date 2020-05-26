@@ -256,4 +256,30 @@ mod test_instructions {
         assert!(cpu.general_registers[1] == 0xb);
         assert!(cpu.vf_register == 0);
     }
+
+    #[test]
+    fn test_shl_vx_vy() {
+
+        let mut cpu = cpu::Cpu::new();
+
+        // LD V1, 0xff
+        assert!(cpu.general_registers[1] == 0);
+        cpu.execute_instruction(0x61ff);       
+        assert!(cpu.general_registers[1] == 0xff);
+
+        // SHR v0, v1
+        // test VF == 1
+        assert!(cpu.general_registers[0] == 0);
+        cpu.execute_instruction(0x801e);
+        assert!(cpu.general_registers[0] == 0xfe);
+        assert!(cpu.vf_register == 1);
+
+        // LD V1, 2
+        // test VF == 0
+        cpu.execute_instruction(0x6101);       
+        assert!(cpu.general_registers[1] == 0x01);
+        cpu.execute_instruction(0x801e);
+        assert!(cpu.general_registers[0] == 0x2);
+        assert!(cpu.vf_register == 0);
+    }
 }
