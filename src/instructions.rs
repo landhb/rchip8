@@ -1,8 +1,14 @@
+// TODO - possibly just add this to the Cpu implementation
+// and reference self as the first param for each function
 pub mod instructions {
 
     use crate::cpu::Cpu;
-    //use byteorder::{ByteOrder, BigEndian}; 
+    use crate::cpu::FLAG_REGISTER;
 
+
+    /*
+     *  Jump to address nnn
+     */
     pub fn jmp_nnn(cpu: &mut Cpu, opcode:u16) {
         let addr = (opcode & 0x0FFF) as usize;
         cpu.program_counter = addr;
@@ -13,7 +19,7 @@ pub mod instructions {
      */ 
     pub fn ld_vx(cpu: &mut Cpu, reg: u16, opcode: u16) {
         let value = (opcode & 0x00FF) as u8;
-        cpu.general_registers[reg as usize] = value;
+        cpu.registers[reg as usize] = value;
     }
 
     /*
@@ -22,16 +28,16 @@ pub mod instructions {
      */
     pub fn add_vx_kk(cpu: &mut Cpu, reg: u16, opcode: u16) {
         let value = opcode & 0x00FF;
-        cpu.general_registers[reg as usize] = 
-        cpu.general_registers[reg as usize].wrapping_add(value as u8);
+        cpu.registers[reg as usize] = 
+        cpu.registers[reg as usize].wrapping_add(value as u8);
     }
 
     /*
      *  Stores the value of register Vy in register Vx.
      */
     pub fn ld_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
-        cpu.general_registers[regx as usize] =
-        cpu.general_registers[regy as usize];
+        cpu.registers[regx as usize] =
+        cpu.registers[regy as usize];
     }
 
     
@@ -43,9 +49,9 @@ pub mod instructions {
      *  Otherwise, it is 0. 
      */
     pub fn or_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
-        cpu.general_registers[regx as usize] =
-        cpu.general_registers[regx as usize] |
-        cpu.general_registers[regy as usize];
+        cpu.registers[regx as usize] =
+        cpu.registers[regx as usize] |
+        cpu.registers[regy as usize];
     }
 
     
@@ -57,9 +63,9 @@ pub mod instructions {
      *  Otherwise, it is 0. 
      */
     pub fn and_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
-        cpu.general_registers[regx as usize] =
-        cpu.general_registers[regx as usize] &
-        cpu.general_registers[regy as usize];
+        cpu.registers[regx as usize] =
+        cpu.registers[regx as usize] &
+        cpu.registers[regy as usize];
     }
 
     /*  
@@ -70,9 +76,9 @@ pub mod instructions {
      *  set to 1. Otherwise, it is 0. 
      */
     pub fn xor_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
-        cpu.general_registers[regx as usize] =
-        cpu.general_registers[regx as usize] ^
-        cpu.general_registers[regy as usize];
+        cpu.registers[regx as usize] =
+        cpu.registers[regx as usize] ^
+        cpu.registers[regy as usize];
     }
 
     /*  
@@ -81,15 +87,15 @@ pub mod instructions {
      *  Only the lowest 8 bits of the result are kept, and stored in Vx.
      */
     pub fn add_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
-        match cpu.general_registers[regx as usize]
-            .overflowing_add(cpu.general_registers[regy as usize] as u8) {
+        match cpu.registers[regx as usize]
+            .overflowing_add(cpu.registers[regy as usize] as u8) {
             (v, true) => {
-                cpu.general_registers[regx as usize] = v;
-                cpu.vf_register = 1u8;
+                cpu.registers[regx as usize] = v;
+                cpu.registers[FLAG_REGISTER] = 1u8;
             }
             (v,false) => {
-                cpu.general_registers[regx as usize] = v;
-                cpu.vf_register = 0u8;
+                cpu.registers[regx as usize] = v;
+                cpu.registers[FLAG_REGISTER] = 0u8;
             }
         }
     }
@@ -99,15 +105,15 @@ pub mod instructions {
      *  If Vx > Vy, then VF is set to 1, otherwise 0. 
      */
     pub fn sub_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
-        match cpu.general_registers[regx as usize]
-            .overflowing_sub(cpu.general_registers[regy as usize] as u8) {
+        match cpu.registers[regx as usize]
+            .overflowing_sub(cpu.registers[regy as usize] as u8) {
             (v, true) => {
-                cpu.general_registers[regx as usize] = v;
-                cpu.vf_register = 0u8; // 0 if underflow occured
+                cpu.registers[regx as usize] = v;
+                cpu.registers[FLAG_REGISTER] = 0u8; // 0 if underflow occured
             }
             (v,false) => {
-                cpu.general_registers[regx as usize] = v;
-                cpu.vf_register = 1u8; // 1 if underflow didn't occur
+                cpu.registers[regx as usize] = v;
+                cpu.registers[FLAG_REGISTER] = 1u8; // 1 if underflow didn't occur
             }
         }
     }
@@ -117,14 +123,14 @@ pub mod instructions {
      * Set register VF to the least significant bit prior to the shift
      */
     pub fn shr_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
-        if cpu.general_registers[regy as usize] & 0x1 == 0x1 {
-            cpu.vf_register = 1u8;
+        if cpu.registers[regy as usize] & 0x1 == 0x1 {
+            cpu.registers[FLAG_REGISTER] = 1u8;
         }
         else {
-            cpu.vf_register = 0u8;
+            cpu.registers[FLAG_REGISTER] = 0u8;
         }
-        cpu.general_registers[regx as usize] =
-        cpu.general_registers[regy as usize].wrapping_shr(1);
+        cpu.registers[regx as usize] =
+        cpu.registers[regy as usize].wrapping_shr(1);
     }
 
      /* 
@@ -133,15 +139,15 @@ pub mod instructions {
      *  Set VF to 01 if a borrow does not occur
      */
     pub fn subn_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16) {
-        match cpu.general_registers[regy as usize]
-            .overflowing_sub(cpu.general_registers[regx as usize] as u8) {
+        match cpu.registers[regy as usize]
+            .overflowing_sub(cpu.registers[regx as usize] as u8) {
             (v, true) => {
-                cpu.general_registers[regx as usize] = v;
-                cpu.vf_register = 0u8; // 0 if underflow occured
+                cpu.registers[regx as usize] = v;
+                cpu.registers[FLAG_REGISTER] = 0u8; // 0 if underflow occured
             }
             (v,false) => {
-                cpu.general_registers[regx as usize] = v;
-                cpu.vf_register = 1u8; // 1 if underflow didn't occur
+                cpu.registers[regx as usize] = v;
+                cpu.registers[FLAG_REGISTER] = 1u8; // 1 if underflow didn't occur
             }
         }
     }
@@ -151,14 +157,14 @@ pub mod instructions {
      *  Set register VF to the most significant bit prior to the shift
      */
     pub fn shl_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16){
-        if cpu.general_registers[regy as usize] & (1 << 7) != 0 {
-            cpu.vf_register = 1u8;
+        if cpu.registers[regy as usize] & (1 << 7) != 0 {
+            cpu.registers[FLAG_REGISTER] = 1u8;
         }
         else {
-            cpu.vf_register = 0u8;
+            cpu.registers[FLAG_REGISTER] = 0u8;
         }
-        cpu.general_registers[regx as usize] =
-        cpu.general_registers[regy as usize].wrapping_shl(1);
+        cpu.registers[regx as usize] =
+        cpu.registers[regy as usize].wrapping_shl(1);
     }
 
     /*  
@@ -166,10 +172,15 @@ pub mod instructions {
      *  equal, the program counter is increased by 2.
      */
     pub fn sne_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16) { 
-        if cpu.general_registers[regx as usize] !=
-           cpu.general_registers[regy as usize] {
+        if cpu.registers[regx as usize] !=
+           cpu.registers[regy as usize] {
             cpu.program_counter += 2;
         }
+    }
+
+    pub fn ld_i_nnn(cpu: &mut Cpu, opcode:u16) { 
+        let addr = (opcode & 0x0FFF) as u16;
+        cpu.i_register = addr;
     }
 
 }
