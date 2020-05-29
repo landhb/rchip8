@@ -339,10 +339,9 @@ dependencies = [
  "anyhow",
  "byteorder",
  "colored",
- "lazy_static",
  "linefeed",
  "pretty-hex",
- "sdl2",
+ "rand",
 ]
 
 [[package]]
@@ -372,28 +371,6 @@ dependencies = [
  "blake2b_simd",
  "constant_time_eq",
  "crossbeam-utils",
-]
-
-[[package]]
-name = "sdl2"
-version = "0.34.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6693f362118c0cd32858fe33a14d74cc3111bbc3a7de1aee88e5289fd9289f97"
-dependencies = [
- "bitflags",
- "lazy_static",
- "libc",
- "sdl2-sys",
-]
-
-[[package]]
-name = "sdl2-sys"
-version = "0.34.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "575db20c45cce6565d4ece46509288ded53f5571dc89e4af165a562eb0eeec26"
-dependencies = [
- "cfg-if",
- "libc",
 ]
 
 [[package]]

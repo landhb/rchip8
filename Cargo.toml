@@ -10,10 +10,19 @@ name = "rchip8"
 path = "src/main.rs"
 
 [dependencies]
-anyhow = "1.0.31"
-lazy_static = "1.4.0"
-byteorder = "1.3.4"
-sdl2 = "0.34.0"   # graphics/audio/key presses
-colored = "1.9"
-pretty-hex = "0.1.1"
-linefeed = "0.6.0"
+anyhow = "1.0.31"       # error handling
+byteorder = "1.3.4"     # read_u16 opcodes
+rand = "0.7.3"          # rnd_vx_kk instruction
+
+#tui = "0.9.5"           # graphics
+#termion = "1.5"         # graphics backend
+
+colored = "1.9"         # debugger text
+pretty-hex = "0.1.1"    # debugger hexdump
+linefeed = "0.6.0"      # debugger stdin/history
+
+[profile.release]
+opt-level = 'z'         # Optimize for size.
+lto = true
+#codegen-units = 1
+panic = 'abort'
