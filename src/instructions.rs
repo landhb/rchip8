@@ -35,7 +35,7 @@ pub mod instructions {
      */
     pub fn jmp_nnn(cpu: &mut Cpu, opcode:u16) {
         let addr = (opcode & 0x0FFF) as usize;
-        cpu.program_counter = addr;
+        cpu.program_counter = addr-2;
     }
 
     /*  2nnn - CALL addr
@@ -46,7 +46,7 @@ pub mod instructions {
     pub fn call(cpu: &mut Cpu, opcode:u16) {
         let addr = (opcode & 0x0FFF) as usize;
         cpu.stack.push((cpu.program_counter+2) as u16);
-        cpu.program_counter = addr;
+        cpu.program_counter = addr-2;
     }
 
     /*  3xkk - SE Vx, byte
@@ -263,7 +263,7 @@ pub mod instructions {
      */
     pub fn jmp_v0_nnn(cpu: &mut Cpu, opcode:u16) {
         let addr = (opcode & 0x0FFF) as u16;
-        cpu.program_counter = ((cpu.registers[0] as u16) + addr) as usize;
+        cpu.program_counter = ((cpu.registers[0] as u16) + addr-2) as usize;
     }
 
     /*  Cxkk - RND Vx, byte
