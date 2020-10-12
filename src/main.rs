@@ -50,11 +50,12 @@ fn main() -> Result<()> {
 
     let _prog_len = cpu.load_program(&args[2])?;
 
-    if args[1] == "run" {
-    } else if args[1] == "debug" {
-        cpu.debug()?;
-    } else {
-        println!("[-] unrecognized commmand");
+    match args[1].as_str() {
+        "run" => {},
+        "debug" => cpu.debug()?,
+        _ => {
+            println!("[-] unrecognized command");
+        }
     }
 
     Ok(())
