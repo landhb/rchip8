@@ -352,4 +352,31 @@ mod test_instructions {
         cpu.execute_instruction(0xC000);
         assert_eq!(cpu.registers[0],0);
     }
+
+    #[test]
+    fn test_ld_vx_dt() {
+        let mut cpu = cpu::Cpu::new();
+        assert_eq!(cpu.registers[0],0); 
+        cpu.delay_timer = 0x20;
+        cpu.execute_instruction(0xF007);
+        assert_eq!(cpu.delay_timer,cpu.registers[0]);
+    }
+
+    #[test]
+    fn test_ld_dt_vx() {
+        let mut cpu = cpu::Cpu::new();
+        assert_eq!(cpu.delay_timer,0); 
+        cpu.registers[0] = 0x20;
+        cpu.execute_instruction(0xF015);
+        assert_eq!(cpu.delay_timer,cpu.registers[0]);
+    }
+
+    #[test]
+    fn test_ld_st_vx() {
+        let mut cpu = cpu::Cpu::new();
+        assert_eq!(cpu.sound_timer,0);
+        cpu.registers[0] = 0x20;
+        cpu.execute_instruction(0xF018);
+        assert_eq!(cpu.sound_timer,cpu.registers[0]);
+    }
 }
