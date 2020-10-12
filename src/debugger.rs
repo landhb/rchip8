@@ -86,9 +86,9 @@ impl Debugger for crate::cpu::Cpu {
                 [0,n,_,_] => {self.print_instruction(i,&format!("SYS 0x{:X}{:X}", n,v[1]),comments);},
                 [1,n,_,_] => {self.print_instruction(i,&format!("JP 0x{:X}{:X}", n,v[1]),comments);},
                 [2,n,_,_] => {self.print_instruction(i,&format!("CALL 0x{:X}{:X}", n,v[1]),comments);},
-                [3,x,_,_] => {self.print_instruction(i,&format!("SE V{:X}, {:X}", x,v[1]),comments);}, // skip instruction if Vx == kk
-                [4,x,_,_] => {self.print_instruction(i,&format!("SNE V{:X}, {:X}", x,v[1]),comments);}, // skip instruction if Vx != kk
-                [5,x,y,_] => {self.print_instruction(i,&format!("SNE V{:X}, V{:X}", x,y),comments);}, // skip instruction if Vx == Vy
+                [3,x,_,_] => {self.print_instruction(i,&format!("SE V{:X}, 0x{:X}", x,v[1]),comments);}, // skip instruction if Vx == kk
+                [4,x,_,_] => {self.print_instruction(i,&format!("SNE V{:X}, 0x{:X}", x,v[1]),comments);}, // skip instruction if Vx != kk
+                [5,x,y,_] => {self.print_instruction(i,&format!("SE V{:X}, V{:X}", x,y),comments);}, // skip instruction if Vx == Vy
                 [6,x,_,_] => {self.print_instruction(i,&format!("LD V{:X}, {:X}", x,v[1]),comments);}, // load kk into Vx
                 [7,x,_,_] => {self.print_instruction(i,&format!("ADD V{:X}, {:X}", x,v[1]),comments);}, // add kk to Vx
                 [8,x,y,0] => {self.print_instruction(i,&format!("LD V{:X}, V{:X}", x,y),comments);}, // set Vx = Vy
@@ -161,7 +161,12 @@ impl Debugger for crate::cpu::Cpu {
                         println!("[*] usage: x/100 0x200");
                         continue;
                     }
-                    let mut without_suffix = data[0].split("/").collect::<Vec<&str>>()[1].to_string();
+                    let without_suffix = data[0].split("/").collect::<Vec<&str>>();
+                    if without_suffix.len() < 2 {
+                        println!("[-] usage: x/[BYTES] [ADDR]");
+                        continue;
+                    }
+                    let mut without_suffix = without_suffix[1].to_string();
                     without_suffix.retain(|x| "0123456789".contains(x));
                     let amount = match without_suffix.parse::<u32>(){
                         Ok(v) => v as usize,
