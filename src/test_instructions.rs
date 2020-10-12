@@ -5,15 +5,14 @@ use crate::cpu::FLAG_REGISTER;
 mod test_instructions {
     use super::*;
 
-
     #[test]
     fn test_call_ret() {
         let mut cpu = cpu::Cpu::new();
-        assert_eq!(cpu.program_counter,0x200);
+        assert_eq!(cpu.program_counter, 0x200);
         cpu.execute_instruction(0x2412); // CALL 0x412
-        assert_eq!(cpu.program_counter,0x412);
+        assert_eq!(cpu.program_counter, 0x412);
         cpu.execute_instruction(0x00EE); // RET
-        assert_eq!(cpu.program_counter,0x202);
+        assert_eq!(cpu.program_counter, 0x202);
     }
 
     #[test]
@@ -29,6 +28,53 @@ mod test_instructions {
         assert_eq!(cpu.program_counter, 0x200);
         cpu.execute_instruction(0x124e); // JMP 0x24e
         assert_eq!(cpu.program_counter, 0x24e);
+    }
+
+    #[test]
+    fn test_se_vx_kk() {
+        let mut cpu = cpu::Cpu::new();
+        cpu.registers[0] = 0x50;
+        assert_eq!(cpu.program_counter, 0x200);
+
+        // test skipped
+        cpu.execute_instruction(0x3050);
+        assert_eq!(cpu.program_counter, 0x204);
+
+        // test not skipped
+        cpu.execute_instruction(0x3051);
+        assert_eq!(cpu.program_counter, 0x206);
+    }
+
+    #[test]
+    fn test_sne_vx_kk() {
+        let mut cpu = cpu::Cpu::new();
+        cpu.registers[0] = 0x50;
+        assert_eq!(cpu.program_counter, 0x200);
+
+        // test not skipped
+        cpu.execute_instruction(0x4050);
+        assert_eq!(cpu.program_counter, 0x202);
+
+        // test skipped
+        cpu.execute_instruction(0x4051);
+        assert_eq!(cpu.program_counter, 0x206);
+    }
+
+    #[test]
+    fn test_se_vx_vy() {
+        let mut cpu = cpu::Cpu::new();
+        cpu.registers[0] = 0x50;
+        cpu.registers[1] = 0x50;
+
+        // test skipped
+        assert_eq!(cpu.program_counter, 0x200);
+        cpu.execute_instruction(0x5010);
+        assert_eq!(cpu.program_counter, 0x204);
+
+        // test not skipped
+        cpu.registers[1] = 0x51;
+        cpu.execute_instruction(0x5010);
+        assert_eq!(cpu.program_counter, 0x206);
     }
 
     #[test]

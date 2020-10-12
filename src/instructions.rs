@@ -20,7 +20,7 @@ pub(crate) mod inst {
      */
     pub fn ret(cpu: &mut Cpu) {
         cpu.program_counter = match cpu.stack.pop() {
-            Some(addr) => (addr-2) as usize,
+            Some(addr) => (addr - 2) as usize,
             None => {
                 panic!("[*] segfault! No address on the stack to jump to.");
             }
