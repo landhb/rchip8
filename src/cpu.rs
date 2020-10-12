@@ -79,7 +79,7 @@ impl Cpu {
             [4, x, _, _] => inst::sne_vx_kk(self, x, opcode),
             [5, x, y, _] => inst::se_vx_vy(self, x, y),
             [6, x, _, _] => inst::ld_vx(self, x, opcode),
-            [7, x, _, _] => inst::add_vx_kk(self, x, opcode);
+            [7, x, _, _] => inst::add_vx_kk(self, x, opcode),
             [8, x, y, 0] => inst::ld_vx_vy(self, x, y),
             [8, x, y, 1] => inst::or_vx_vy(self, x, y),
             [8, x, y, 2] => inst::and_vx_vy(self, x, y),
