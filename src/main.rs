@@ -11,10 +11,9 @@ mod debugger;
 use crate::debugger::Debugger;
 
 #[cfg(test)]
-mod test_instructions; 
+mod test_instructions;
 
-
- /*
+/*
     Memory Map:
     +---------------+= 0xFFF (4095) End of Chip-8 RAM
     |               |
@@ -40,9 +39,7 @@ mod test_instructions;
     +---------------+= 0x000 (0) Start of Chip-8 RAM
 */
 
-
-fn main() -> Result <()> {
-
+fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
     let mut cpu = cpu::Cpu::new();
 
@@ -54,14 +51,11 @@ fn main() -> Result <()> {
     let _prog_len = cpu.load_program(&args[2])?;
 
     if args[1] == "run" {
-
-
     } else if args[1] == "debug" {
         cpu.debug()?;
     } else {
         println!("[-] unrecognized commmand");
     }
-    
 
     Ok(())
 }
