@@ -5,6 +5,24 @@ use crate::cpu::FLAG_REGISTER;
 mod test_instructions {
     use super::*;
 
+
+    #[test]
+    fn test_call_ret() {
+        let mut cpu = cpu::Cpu::new();
+        assert_eq!(cpu.program_counter,0x200);
+        cpu.execute_instruction(0x2412); // CALL 0x412
+        assert_eq!(cpu.program_counter,0x412);
+        cpu.execute_instruction(0x00EE); // RET
+        assert_eq!(cpu.program_counter,0x202);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_ret_fails() {
+        let mut cpu = cpu::Cpu::new();
+        cpu.execute_instruction(0x00EE);
+    }
+
     #[test]
     fn test_jmp_nnn() {
         let mut cpu = cpu::Cpu::new();
