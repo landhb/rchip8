@@ -3,8 +3,14 @@
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
   </head>
   <body>
+    <div class='screen'>
+    <canvas id='canvas' width='64' height='32'
+      style='transform: scale(8); transform-origin: top left'></canvas>
+    </div>
     <!-- Note the usage of `type=module` here as this is an ES6 module -->
     <script type="module">
+      const WIDTH = 64;
+      const HEIGHT = 32;
       // Use ES module import syntax to import functionality from the module
       // that we have compiled.
       //
@@ -12,11 +18,21 @@
       // will "boot" the module and make it ready to use. Currently browsers
       // don't support natively imported WebAssembly as an ES module, but
       // eventually the manual initialization won't be required!
-      import init, { load_program, handle_key_event } from './pkg/rchip8_wasm.js';
+      import init, { 
+        load_program,      // Rust lib binary loader
+        handle_key_event,  // Rust lib key up/key down event handler
+        execute_cycle,     // Rust lib, execute a chip8 cycle
+        update_display,    // Rust lib, write to display
+      } from './pkg/rchip8_wasm.js';
 
-      // setup listeners
-      document.addEventListener('keyup', key_press_callback);
-      document.addEventListener('keydown', key_press_callback);
+      /**
+       * Initialise the canvas
+       */
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
 
       /**
        * Key event callback
@@ -24,6 +40,18 @@
       async function key_press_callback(e) {
         handle_key_event(e.keyCode, e.type);
       }
+
+      /**
+       * Display callback, redraw the screen 
+       */
+      async function display_callback() {
+        const imageData = ctx.createImageData(WIDTH, HEIGHT);
+        console.log(imageData.data.length);
+        update_display(imageData.data);
+        ctx.putImageData(imageData, 0, 0);
+        window.requestAnimationFrame(display_callback);
+      };
+
 
       /**
        * Main entry point
@@ -57,14 +85,31 @@
         // modes
         await init();
 
-        // Load the program into memory
+
+        /**
+         * Load the program into memory
+         */
         const res = await fetch("./roms/PONG");
         const buffer = await res.arrayBuffer();
-
         let prog = new Uint8Array(buffer);
-
-        // And afterwards we can use all the functionality defined in wasm.
         const result = load_program(prog);
+
+        /**
+         * Setup keyboard event listeners
+         */
+        document.addEventListener('keyup', key_press_callback);
+        document.addEventListener('keydown', key_press_callback);
+
+        /**
+         * Setup clock speed, Chip8 clock speed is 500HZ 
+         * which is 2 milliseconds between ticks
+         */
+        //window.setInterval(execute_cycle, 2);
+
+        /**
+         * Begin redrawing the screen
+         */
+        window.requestAnimationFrame(display_callback);
        
       }
       run();

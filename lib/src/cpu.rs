@@ -9,6 +9,9 @@ pub const MEM_SIZE: usize = 0xFFF;
 pub const TXT_OFFSET: usize = 0x200;
 pub const FLAG_REGISTER: usize = 15; // VF register
 
+const DISP_WIDTH: usize = 64;
+const DISP_HEIGHT: usize = 32;
+
 pub struct Cpu {
     pub stack: Vec<u16>,
     pub memory: [u8; MEM_SIZE],
@@ -29,7 +32,7 @@ pub struct Cpu {
 
     // peripherals
     keyboard: bitvec::vec::BitVec<LocalBits,usize>,
-    display: bitvec::vec::BitVec<LocalBits,usize>,
+    display: [u8;DISP_HEIGHT*DISP_WIDTH*4],
 
 }
 
@@ -51,7 +54,7 @@ impl Cpu {
             delay_timer: 0,
             sound_timer: 0,
             keyboard: bitvec![mut 0u8; 256],
-            display: bitvec![mut 0u8;4096],
+            display: [0u8;DISP_HEIGHT*DISP_WIDTH*4],
         }
     }
 
@@ -70,6 +73,13 @@ impl Cpu {
         let len = f.read(&mut self.memory[TXT_OFFSET..MEM_SIZE])?;
         println!("[+] read {} bytes", len);
         Ok(len)
+    }
+
+    /**
+     * Obtain a reference to the display buffer
+     */
+    pub fn get_display(&self) -> &[u8] {
+        &self.display
     }
 
     /**

@@ -1,5 +1,5 @@
 use rchip8::cpu::Cpu;
-use std::sync::Mutex;
+use std::sync::RwLock;
 
 use wasm_bindgen::prelude::*;
 
@@ -12,7 +12,7 @@ lazy_static! {
     /**
      * Our runtime will instantiate a global CPU instance
      */
-    static ref CPU: Mutex<Cpu> = Mutex::new(Cpu::new());
+    static ref CPU: RwLock<Cpu> = RwLock::new(Cpu::new());
 }
 
 #[wasm_bindgen]
@@ -56,7 +56,7 @@ pub fn main() -> Result<(), JsValue> {
  */
 #[wasm_bindgen]
 pub fn load_program(prog: &[u8]) -> Result<(), JsValue>  {
-    let mut cpu = CPU.lock().unwrap();
+    let mut cpu = CPU.write().unwrap();
     match cpu.load_from_bytes(&prog) {
         Ok(_) => {},
         Err(e) => {
@@ -74,7 +74,7 @@ pub fn load_program(prog: &[u8]) -> Result<(), JsValue>  {
  */
 #[wasm_bindgen]
 pub fn execute_cycle() -> Result<(), JsValue> {
-    let mut cpu = CPU.lock().unwrap();
+    let mut cpu = CPU.write().unwrap();
     let opcode = cpu.fetch_instruction();
     cpu.execute_instruction(opcode);
     Ok(())
@@ -89,4 +89,22 @@ pub fn handle_key_event(code: u32, event_type: &str) {
     match code {
         _ => console_log!("got key {:?}, type: {:?}", code, event_type),
     }
+}
+
+/**
+ * Update the display by writing into the provided JS buffer
+ * 
+ * JS reference for the buffer: 
+ * https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/createImageData
+ */
+#[wasm_bindgen]
+pub fn update_display(display: &mut [u8]) {
+	let cpu = CPU.read().unwrap();
+	let data = cpu.get_display();
+	for i in 0..data.len()/4 {
+		display[i*4 + 0] = if data[i] == 1 { 0x33 } else { 0x0 };
+		display[i*4 + 1] = if data[i] == 1 { 0xff } else { 0x0 };
+		display[i*4 + 2] = if data[i] == 1 { 0x66 } else { 0x0 };
+		display[i*4 + 3] = 255;
+	}
 }
