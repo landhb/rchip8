@@ -39,7 +39,7 @@ macro_rules! console_log {
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
 }
 
-// Called when the wasm module is instantiated
+/* Called when the wasm module is instantiated
 #[wasm_bindgen(start)]
 pub fn main() -> Result<(), JsValue> {
     // Use `web_sys`'s global `window` function to get a handle on the global
@@ -55,28 +55,36 @@ pub fn main() -> Result<(), JsValue> {
     body.append_child(&val)?;
 
     Ok(())
-}
+}*/
 
 
 #[wasm_bindgen]
-pub fn load_program(prog: Vec<u8>) -> u32 {
-
-	console_log!("{:?}",prog);
-
-	// perform safety check on JS provided data
-	// which we can't guarantee
-	if prog.is_empty() {
-		return 1;
-	}
-
+pub fn load_program(prog: &[u8]) -> Result<(), JsValue>  {
 	let mut cpu = CPU.lock().unwrap();
-
 	match cpu.load_from_bytes(&prog) {
 		Ok(_) => {},
 		Err(e) => {
 			console_log!("{:?}", e);
-			return 1;
+			return Err(format!("{:?}",e).into());
 		}
 	}
-	0
+    console_log!("[+] loaded ROM");
+	Ok(())
+}
+
+
+#[wasm_bindgen]
+pub fn execute_cycle() -> Result<(), JsValue> {
+    let mut cpu = CPU.lock().unwrap();
+    let opcode = cpu.fetch_instruction();
+    cpu.execute_instruction(opcode);
+    Ok(())
+}
+
+
+#[wasm_bindgen]
+pub fn handle_key_event(code: u32, event_type: &str) {
+    match code {
+        _ => console_log!("got key {:?}, type: {:?}", code, event_type),
+    }
 }

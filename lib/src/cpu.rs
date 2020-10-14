@@ -68,9 +68,11 @@ impl Cpu {
      */
     pub fn load_from_bytes(&mut self, bytes: &[u8]) -> Result<()> {
         if bytes.len() > MEM_SIZE-TXT_OFFSET {
-            bail!("too large")
+            bail!("[!] ROM too large to load.")
         }
-        self.memory[TXT_OFFSET..MEM_SIZE].copy_from_slice(bytes);
+        // the source is of unknown length, so we must get the length first
+        let len = bytes.len();
+        self.memory[TXT_OFFSET..TXT_OFFSET+len].copy_from_slice(bytes);
         Ok(())
     }
 
