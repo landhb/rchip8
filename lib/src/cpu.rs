@@ -64,6 +64,17 @@ impl Cpu {
     }
 
     /**
+     * Load a chip8 program into memory
+     */
+    pub fn load_from_bytes(&mut self, bytes: &[u8]) -> Result<()> {
+        if bytes.len() > MEM_SIZE-TXT_OFFSET {
+            bail!("too large")
+        }
+        self.memory[TXT_OFFSET..MEM_SIZE].copy_from_slice(bytes);
+        Ok(())
+    }
+
+    /**
      * Fetch the next 16 bit opcode from memory
      */
     pub fn fetch_instruction(&self) -> u16 {
