@@ -43,10 +43,18 @@
         // modes
         await init();
 
-        // And afterwards we can use all the functionality defined in wasm.
-        const result = load_program("PONG");
-       
+        // Load the program into memory
+        //const res = await fetch("PONG");
+        //const buffer = await res.arrayBuffer();
+        const res = await fetch("./PONG");
+        const buffer = await res.arrayBuffer();
 
+        console.log(buffer);
+
+        // And afterwards we can use all the functionality defined in wasm.
+        const result = load_program(buffer);
+       
+      }
       run();
     </script>
   </body>

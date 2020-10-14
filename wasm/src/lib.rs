@@ -59,11 +59,19 @@ pub fn main() -> Result<(), JsValue> {
 
 
 #[wasm_bindgen]
-pub fn load_program(path: &str) -> u32 {
+pub fn load_program(prog: Vec<u8>) -> u32 {
+
+	console_log!("{:?}",prog);
+
+	// perform safety check on JS provided data
+	// which we can't guarantee
+	if prog.is_empty() {
+		return 1;
+	}
 
 	let mut cpu = CPU.lock().unwrap();
 
-	match cpu.load_program(path) {
+	match cpu.load_from_bytes(&prog) {
 		Ok(_) => {},
 		Err(e) => {
 			console_log!("{:?}", e);
