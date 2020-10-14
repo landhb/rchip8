@@ -1,17 +1,17 @@
 use anyhow::Result;
 use std::env;
-
-// chip8 implementation
-mod cpu;
-mod instructions;
+use rchip8::cpu;
 
 // bring the Debugger Trait in-scope
 // so that we may invoke the debugger
 mod debugger;
 use crate::debugger::Debugger;
 
-#[cfg(test)]
-mod test_instructions;
+// terminal graphics
+use termion::event::Key;
+use termion::input::TermRead;
+use termion::raw::IntoRawMode;
+use std::io::{Write, stdout, stdin};
 
 /*
     Memory Map:
@@ -38,6 +38,20 @@ mod test_instructions;
     |  interpreter  |
     +---------------+= 0x000 (0) Start of Chip-8 RAM
 */
+fn run(mut cpu: cpu::Cpu) -> Result<()> {
+
+   
+    loop {
+
+        // fetch & execute instruction
+        let inst = cpu.fetch_instruction();
+        cpu.execute_instruction(inst);
+
+        // update screen
+
+        // update timers
+    }
+}
 
 fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
@@ -51,7 +65,7 @@ fn main() -> Result<()> {
     let _prog_len = cpu.load_program(&args[2])?;
 
     match args[1].as_str() {
-        "run" => {}
+        "run" => run(cpu)?,
         "debug" => cpu.debug()?,
         _ => {
             println!("[-] unrecognized command");

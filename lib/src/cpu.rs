@@ -2,6 +2,7 @@ use crate::instructions::inst;
 use anyhow::{bail, Result};
 use std::fs::File;
 use std::io::Read;
+use byteorder::{BigEndian, ByteOrder};
 
 pub const MEM_SIZE: usize = 0xFFF;
 pub const TXT_OFFSET: usize = 0x200;
@@ -27,8 +28,9 @@ pub struct Cpu {
 }
 
 impl Cpu {
-    /*
-     * Create a new CPU instance, called once at startup
+
+    /**
+     * Create a new CPU instance
      */
     pub fn new() -> Self {
         Cpu {
@@ -44,6 +46,9 @@ impl Cpu {
         }
     }
 
+    /**
+     * Load a chip8 program into memory
+     */
     pub fn load_program(&mut self, path: &str) -> Result<usize> {
         // sanity check the file size
         let metadata = std::fs::metadata(path)?;
@@ -58,7 +63,16 @@ impl Cpu {
         Ok(len)
     }
 
-    /*
+    /**
+     * Fetch the next 16 bit opcode from memory
+     */
+    pub fn fetch_instruction(&self) -> u16 {
+        BigEndian::read_u16(
+            &self.memory[self.program_counter..self.program_counter + 2],
+        )
+    }
+
+    /**
      * Each cycle will call this after reading in another 16 bit opcode
      */
     pub fn execute_instruction(&mut self, opcode: u16) {
