@@ -3,6 +3,7 @@ use anyhow::{bail, Result};
 use std::fs::File;
 use std::io::Read;
 use byteorder::{BigEndian, ByteOrder};
+use bitvec::prelude::*;
 
 pub const MEM_SIZE: usize = 0xFFF;
 pub const TXT_OFFSET: usize = 0x200;
@@ -25,7 +26,13 @@ pub struct Cpu {
     // timers
     pub delay_timer: u8,
     pub sound_timer: u8,
+
+    // peripherals
+    keyboard: bitvec::vec::BitVec<LocalBits,usize>,
+    display: bitvec::vec::BitVec<LocalBits,usize>,
+
 }
+
 
 impl Cpu {
 
@@ -43,6 +50,8 @@ impl Cpu {
             program_counter: TXT_OFFSET,
             delay_timer: 0,
             sound_timer: 0,
+            keyboard: bitvec![mut 0u8; 256],
+            display: bitvec![mut 0u8;4096],
         }
     }
 

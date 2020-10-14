@@ -9,10 +9,10 @@ extern crate lazy_static;
 
 
 lazy_static! {
-	/**
-	 * Our runtime will instantiate a global CPU instance
-	 */
-	static ref CPU: Mutex<Cpu> = Mutex::new(Cpu::new());
+    /**
+     * Our runtime will instantiate a global CPU instance
+     */
+    static ref CPU: Mutex<Cpu> = Mutex::new(Cpu::new());
 }
 
 #[wasm_bindgen]
@@ -21,16 +21,6 @@ extern "C" {
     // `log(..)`
     #[wasm_bindgen(js_namespace = console)]
     fn log(s: &str);
-
-    // The `console.log` is quite polymorphic, so we can bind it with multiple
-    // signatures. Note that we need to use `js_name` to ensure we always call
-    // `log` in JS.
-    #[wasm_bindgen(js_namespace = console, js_name = log)]
-    fn log_u32(a: u32);
-
-    // Multiple arguments too!
-    #[wasm_bindgen(js_namespace = console, js_name = log)]
-    fn log_many(a: &str, b: &str);
 }
 
 macro_rules! console_log {
@@ -57,22 +47,31 @@ pub fn main() -> Result<(), JsValue> {
     Ok(())
 }*/
 
-
+/**
+ * Load a binary blog as the Chip8 program
+ *
+ * This is required because the rust wasm runtime can't
+ * yet read files by itself, so we will fetch the file with
+ * JS first
+ */
 #[wasm_bindgen]
 pub fn load_program(prog: &[u8]) -> Result<(), JsValue>  {
-	let mut cpu = CPU.lock().unwrap();
-	match cpu.load_from_bytes(&prog) {
-		Ok(_) => {},
-		Err(e) => {
-			console_log!("{:?}", e);
-			return Err(format!("{:?}",e).into());
-		}
-	}
+    let mut cpu = CPU.lock().unwrap();
+    match cpu.load_from_bytes(&prog) {
+        Ok(_) => {},
+        Err(e) => {
+            console_log!("{:?}", e);
+            return Err(format!("{:?}",e).into());
+        }
+    }
     console_log!("[+] loaded ROM");
-	Ok(())
+    Ok(())
 }
 
-
+/**
+ * Complete a full fetch -> execute cycle for the next 
+ * instruction
+ */
 #[wasm_bindgen]
 pub fn execute_cycle() -> Result<(), JsValue> {
     let mut cpu = CPU.lock().unwrap();
@@ -81,7 +80,10 @@ pub fn execute_cycle() -> Result<(), JsValue> {
     Ok(())
 }
 
-
+/**
+ * Handle all key events by updating the emulator
+ * state appropriately
+ */
 #[wasm_bindgen]
 pub fn handle_key_event(code: u32, event_type: &str) {
     match code {
