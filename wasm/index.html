@@ -46,7 +46,6 @@
        */
       async function display_callback() {
         const imageData = ctx.createImageData(WIDTH, HEIGHT);
-        console.log(imageData.data.length);
         update_display(imageData.data);
         ctx.putImageData(imageData, 0, 0);
         window.requestAnimationFrame(display_callback);

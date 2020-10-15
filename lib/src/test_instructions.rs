@@ -403,6 +403,17 @@ mod test_instructions {
         assert_eq!(cpu.registers[0], 0);
     }
 
+
+    /* TODO test draw  #[test]
+    fn test_drw_vx_vy_n() {
+        let mut cpu = cpu::Cpu::new();
+        cpu.execute_instruction(0xD818).unwrap();
+    } */
+
+    // TODO TEST KEY SKIPS
+    // test EX9E & EXA1
+
+
     #[test]
     fn test_ld_vx_dt() {
         let mut cpu = cpu::Cpu::new();
@@ -410,6 +421,26 @@ mod test_instructions {
         cpu.delay_timer = 0x20;
         cpu.execute_instruction(0xF007).unwrap();
         assert_eq!(cpu.delay_timer, cpu.registers[0]);
+    }
+
+    #[test]
+    fn test_ld_vx_k() {
+        let mut cpu = cpu::Cpu::new();
+        assert_eq!(cpu.registers[0], 0);
+
+        // halt execution until a keydown event
+        cpu.execute_instruction(0xF00A).unwrap();
+        assert_eq!(cpu.program_counter, 0x202);
+
+        // test that halt is in effect
+        cpu.execute_instruction(0x60fe).unwrap();
+        assert_eq!(cpu.program_counter, 0x202);
+
+        // press the 5 key
+        cpu.key_down(0x5);
+
+        // V0 should contain 0x5
+        assert_eq!(cpu.registers[0], 0x5);
     }
 
     #[test]
@@ -429,4 +460,14 @@ mod test_instructions {
         cpu.execute_instruction(0xF018).unwrap();
         assert_eq!(cpu.sound_timer, cpu.registers[0]);
     }
+
+
+    // TODO
+    // test_add_i_vx
+    // test_ld_f_vx
+    // test_ld_b_vx
+    // test_ld_i_vx
+    // test_ld_vx_i
+
+
 }

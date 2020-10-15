@@ -24,8 +24,6 @@ extern "C" {
 }
 
 macro_rules! console_log {
-    // Note that this is using the `log` function imported above during
-    // `bare_bones`
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
 }
 
@@ -48,7 +46,7 @@ pub fn main() -> Result<(), JsValue> {
 }*/
 
 /**
- * Load a binary blog as the Chip8 program
+ * Load a binary blob as the Chip8 program
  *
  * This is required because the rust wasm runtime can't
  * yet read files by itself, so we will fetch the file with
@@ -92,9 +90,13 @@ pub fn execute_cycle() -> Result<(), JsValue> {
  */
 #[wasm_bindgen]
 pub fn handle_key_event(code: u32, event_type: &str) {
-    match code {
-        _ => console_log!("got key {:?}, type: {:?}", code, event_type),
+    let mut cpu = CPU.write().unwrap();
+    match event_type {
+        "keydown" => cpu.key_down(code as usize),
+        "keyup" => cpu.key_up(code as usize),
+        _ => {},
     }
+    console_log!("got key {:?}, type: {:?}", code, event_type)
 }
 
 /**

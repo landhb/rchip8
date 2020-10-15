@@ -18,22 +18,43 @@ pub struct Cpu {
 
     pub(crate) registers: [u8; 16],
 
-    // special registers
+    // special registers/timers
     pub(crate) i_register: u16,
-    pub(crate) dt_register: u8,
-    pub(crate) st_register: u8,
+    pub(crate) delay_timer: u8,
+    pub(crate) sound_timer: u8,
 
     // pc
     pub(crate) program_counter: usize,
 
-    // timers
-    pub(crate) delay_timer: u8,
-    pub(crate) sound_timer: u8,
-
     // peripherals
     pub(crate) keyboard: bitvec::vec::BitVec<LocalBits,usize>,
     pub(crate) display: [u8;DISP_HEIGHT*DISP_WIDTH],
+
+    // internal state, true if halted
+    // to pause for a key press event
+    halted: bool,
+    store_key: usize,
 }
+
+
+pub static FONT_SET: [u8; 80] = [
+  0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+  0x20, 0x60, 0x20, 0x20, 0x70, // 1
+  0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+  0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+  0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+  0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+  0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+  0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+  0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+  0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+  0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+  0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+  0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+  0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+  0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+  0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+];
 
 
 impl Cpu {
@@ -42,20 +63,25 @@ impl Cpu {
      * Create a new CPU instance
      */
     pub fn new() -> Self {
-        Cpu {
+
+        let mut res = Cpu {
             stack: Vec::<u16>::new(),
             memory: [0; MEM_SIZE],
             registers: [0; 16],
             i_register: 0u16,
-            dt_register: 0u8,
-            st_register: 0u8,
             program_counter: TXT_OFFSET,
             delay_timer: 0,
             sound_timer: 0,
             keyboard: bitvec![mut 0u8; 256],
             display: [0u8;DISP_HEIGHT*DISP_WIDTH],
-        }
+            halted: false,
+            store_key: 0,
+        };
+
+        res.memory[0..FONT_SET.len()].copy_from_slice(&FONT_SET);
+        res
     }
+
 
     /**
      * Load a chip8 program into memory
@@ -75,13 +101,6 @@ impl Cpu {
     }
 
     /**
-     * Obtain a reference to the display buffer
-     */
-    pub fn get_display(&self) -> &[u8] {
-        &self.display
-    }
-
-    /**
      * Load a chip8 program into memory
      */
     pub fn load_from_bytes(&mut self, bytes: &[u8]) -> Result<()> {
@@ -92,6 +111,32 @@ impl Cpu {
         let len = bytes.len();
         self.memory[TXT_OFFSET..TXT_OFFSET+len].copy_from_slice(bytes);
         Ok(())
+    }
+
+    /**
+     * Obtain a reference to the display buffer
+     */
+    pub fn get_display(&self) -> &[u8] {
+        &self.display
+    }
+
+    /**
+     * Set the given key to the down position
+     * If halted, resume execution
+     */
+    pub fn key_down(&mut self,key: usize) {
+        if self.halted {
+            self.halted = false;
+            self.registers[self.store_key] = key as u8;
+        }
+        self.keyboard.set(key,true);
+    }
+
+    /**
+     * Set the given key to the up position
+     */
+    pub fn key_up(&mut self,key: usize) {
+        self.keyboard.set(key,false);
     }
 
     /**
@@ -107,6 +152,12 @@ impl Cpu {
      * Each cycle will call this after reading in another 16 bit opcode
      */
     pub fn execute_instruction(&mut self, opcode: u16) -> Result<()> {
+
+        // All execution will be halted into
+        // a key down event occurs
+        if self.halted {
+            return Ok(());
+        }
         
         let nums = [
             (opcode >> 12) & 0xF,
@@ -143,14 +194,14 @@ impl Cpu {
             [0xE,x,9,0xE] => inst::skp_vx(self,x),
             [0xE,x,0xA,1] => inst::sknp_vx(self,x),
             [0xF, x, 0, 7] => inst::ld_vx_dt(self, x),
-            //[0xF,x,0,0xA] => {"LD V{:X}, K", x),comments);},
+            [0xF, x,0,0xA] => {self.halted = true; self.store_key = x.into();},
             [0xF, x, 1, 5] => inst::ld_dt_vx(self, x),
             [0xF, x, 1, 8] => inst::ld_st_vx(self, x),
-            //[0xF,x,1,0xE] => {"ADD I, V{:X}", x),comments);},
-            /*[0xF,x,2,9] => {"LD F, V{:X}", x),comments);},
-            [0xF,x,3,3] => {"LD B, V{:X}", x),comments);},
-            [0xF,x,5,5] => {"LD [I], V{:X}", x),comments);},
-            [0xF,x,6,5] => {"LD V{:X}, [I]", x),comments);}, */
+            [0xF,x,1,0xE] => inst::add_i_vx(self,x),
+            [0xF,x,2,9] => inst::ld_f_vx(self,x),
+            [0xF,x,3,3] => inst::ld_b_vx(self,x),
+            [0xF,x,5,5] => inst::ld_i_vx(self,x),
+            [0xF,x,6,5] => inst::ld_vx_i(self,x), 
             [_, _, _, _] => {
                 bail!("[-] opcode 0x{:x} not implemented",opcode);
             }

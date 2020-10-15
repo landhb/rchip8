@@ -1,7 +1,7 @@
 pub(crate) mod inst {
 
     use crate::cpu::Cpu;
-    use crate::cpu::{FLAG_REGISTER,DISP_WIDTH,DISP_HEIGHT};
+    use crate::cpu::{FLAG_REGISTER,DISP_WIDTH,FONT_SET};
 
     /**  
      *  0nnn - SYS addr
@@ -295,17 +295,25 @@ pub(crate) mod inst {
      * (Vx, Vy), set VF = collision.
      */
     pub fn drw_vx_vy_n(cpu: &mut Cpu, regx: u16, regy: u16, n: u16) {
-        let disp_pos = (regx + (regy*(DISP_WIDTH as u16))) as usize;
-        let mem_pos = cpu.i_register as usize;
+        let start_pos = (regx + (regy*(DISP_WIDTH as u16))) as usize;
         cpu.registers[FLAG_REGISTER] = 0;
-        for i in 0..(n as usize) {
-            if cpu.display[disp_pos+i] == 1 && cpu.memory[mem_pos+i] == 1 {
-                cpu.registers[FLAG_REGISTER] = 1;
-                break;
+        for row in 0..(n as usize) {
+            for col in 0..8 {
+                let disp_pos = start_pos + col + (row*DISP_WIDTH);
+                let mem_pos = (cpu.i_register as usize) + row;
+
+                // each byte in memory contains 8 pixels for our display
+                // so we must get the individual bit value for this row,col
+                let mem_val = cpu.memory[mem_pos] >> (7 - col) & 0x01;
+
+                if cpu.display[disp_pos] == 1 && mem_val == 1 {
+                    cpu.registers[FLAG_REGISTER] = 1;
+                }
+                cpu.display[disp_pos] ^= mem_val;
+                
+                //println!("writing to display[{:?}] from memory[{:?}]", disp_pos, mem_pos);
             }
         }
-        cpu.display[disp_pos..(disp_pos+n as usize)].copy_from_slice( 
-        &cpu.memory[mem_pos..(mem_pos+n as usize)]);
     } 
 
     /**
@@ -354,4 +362,62 @@ pub(crate) mod inst {
     pub(crate) fn ld_st_vx(cpu: &mut Cpu, reg: u16) {
         cpu.sound_timer = cpu.registers[reg as usize];
     }
+
+    /**
+     * Fx1E - ADD I, Vx
+     * Set I = I + Vx.
+     */
+    pub(crate) fn add_i_vx(cpu: &mut Cpu, reg: u16) {
+        let _ = cpu.i_register.wrapping_add(cpu.registers[reg as usize].into());
+    }
+
+    /**
+     * Fx29 - LD F, Vx
+     * Set I = location of sprite for digit Vx.
+     * The value of I is set to the location for the hexadecimal sprite 
+     * corresponding to the value of Vx in the font set
+     */
+    pub(crate) fn ld_f_vx(cpu: &mut Cpu, reg: u16) {
+        let addr = cpu.registers[reg as usize]*5;
+        if addr as usize > FONT_SET.len() {
+            panic!("No fontset for {:?}",addr);
+        }
+        cpu.i_register = addr.into();
+    }
+
+    /**
+     * Fx33 - LD B, Vx
+     * Store BCD representation of Vx in memory locations I, I+1, and I+2.
+     *
+     * I   = the hundreds digit of Vx
+     * I+1 = the tens digit of Vx
+     * I+2 = the ones digit of Vx
+     */
+    pub(crate) fn ld_b_vx(cpu: &mut Cpu, reg: u16) {
+        let addr = cpu.i_register as usize;
+        cpu.memory[addr] = (cpu.registers[reg as usize]/100) % 10;
+        cpu.memory[addr+1] = (cpu.registers[reg as usize]/10) % 10;
+        cpu.memory[addr+2] = cpu.registers[reg as usize] % 10;
+    }
+
+    /**
+     * Fx55 - LD [I], Vx
+     * Store registers V0 through Vx in memory starting at location I.
+     */
+    pub(crate) fn ld_i_vx(cpu: &mut Cpu, reg: u16) {
+        let addr = cpu.i_register as usize;
+        let n = reg as usize;
+        cpu.memory[addr..addr+n].copy_from_slice(&cpu.registers[0..n]);
+    }
+
+    /*
+     * Fx65 - LD Vx, [I]
+     * Read registers V0 through Vx from memory starting at location I.
+     */
+    pub(crate) fn ld_vx_i(cpu: &mut Cpu, reg: u16) {
+        let addr = cpu.i_register as usize;
+        let n = reg as usize;
+        cpu.registers[0..n].copy_from_slice(&cpu.memory[addr..addr+n]);
+    }
+
 }
