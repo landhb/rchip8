@@ -76,7 +76,13 @@ pub fn load_program(prog: &[u8]) -> Result<(), JsValue>  {
 pub fn execute_cycle() -> Result<(), JsValue> {
     let mut cpu = CPU.write().unwrap();
     let opcode = cpu.fetch_instruction();
-    cpu.execute_instruction(opcode);
+    match cpu.execute_instruction(opcode) {
+    	Ok(_) => {},
+    	Err(e) => {
+    		console_log!("{:?}", e);
+    		return Err(format!("{:?}",e).into());
+    	}
+    }
     Ok(())
 }
 

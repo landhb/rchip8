@@ -1,7 +1,7 @@
 pub(crate) mod inst {
 
     use crate::cpu::Cpu;
-    use crate::cpu::FLAG_REGISTER;
+    use crate::cpu::{FLAG_REGISTER,DISP_WIDTH,DISP_HEIGHT};
 
     /**  
      *  0nnn - SYS addr
@@ -11,6 +11,19 @@ pub(crate) mod inst {
      *  This will not be implemented
      */
     pub fn sys() {}
+
+    /**
+     *  00E0 - CLS
+     *  Clear the display.
+     */
+    pub fn cls(cpu: &mut Cpu) {
+        if let Some((last, elems)) = cpu.display.split_last_mut() {
+            for el in elems {
+                *el = 0;
+            }
+            *last = 0
+        }
+    }
 
     /**  
      *  00EE - RET
@@ -274,6 +287,45 @@ pub(crate) mod inst {
         let mut rng = rand::thread_rng();
         let value = (opcode & 0x00FF) as u8;
         cpu.registers[reg as usize] = rng.gen::<u8>() & value;
+    }
+
+    /**
+     * Dxyn - DRW Vx, Vy, nibble
+     * Display n-byte sprite starting at memory location I at 
+     * (Vx, Vy), set VF = collision.
+     */
+    pub fn drw_vx_vy_n(cpu: &mut Cpu, regx: u16, regy: u16, n: u16) {
+        let disp_pos = (regx + (regy*(DISP_WIDTH as u16))) as usize;
+        let mem_pos = cpu.i_register as usize;
+        cpu.registers[FLAG_REGISTER] = 0;
+        for i in 0..(n as usize) {
+            if cpu.display[disp_pos+i] == 1 && cpu.memory[mem_pos+i] == 1 {
+                cpu.registers[FLAG_REGISTER] = 1;
+                break;
+            }
+        }
+        cpu.display[disp_pos..(disp_pos+n as usize)].copy_from_slice( 
+        &cpu.memory[mem_pos..(mem_pos+n as usize)]);
+    } 
+
+    /**
+     * Ex9E - SKP Vx
+     * Skip next instruction if key with the value of Vx is pressed.
+     */
+    pub(crate) fn skp_vx(cpu: &mut Cpu, reg: u16) {
+        if cpu.keyboard.get(reg as usize) == Some(&true) {
+            cpu.program_counter += 2;
+        }
+    }
+
+    /** 
+     * ExA1 - SKNP Vx
+     * Skip next instruction if key with the value of Vx is not pressed.
+     */
+    pub(crate) fn sknp_vx(cpu: &mut Cpu, reg: u16) {
+        if cpu.keyboard.get(reg as usize) == Some(&false) {
+            cpu.program_counter += 2;
+        }
     }
 
     /**

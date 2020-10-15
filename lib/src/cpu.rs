@@ -9,31 +9,30 @@ pub const MEM_SIZE: usize = 0xFFF;
 pub const TXT_OFFSET: usize = 0x200;
 pub const FLAG_REGISTER: usize = 15; // VF register
 
-const DISP_WIDTH: usize = 64;
-const DISP_HEIGHT: usize = 32;
+pub const DISP_WIDTH: usize = 64;
+pub const DISP_HEIGHT: usize = 32;
 
 pub struct Cpu {
-    pub stack: Vec<u16>,
-    pub memory: [u8; MEM_SIZE],
+    pub(crate) stack: Vec<u16>,
+    pub(crate) memory: [u8; MEM_SIZE],
 
-    pub registers: [u8; 16],
+    pub(crate) registers: [u8; 16],
 
     // special registers
-    pub i_register: u16,
-    pub dt_register: u8,
-    pub st_register: u8,
+    pub(crate) i_register: u16,
+    pub(crate) dt_register: u8,
+    pub(crate) st_register: u8,
 
     // pc
-    pub program_counter: usize,
+    pub(crate) program_counter: usize,
 
     // timers
-    pub delay_timer: u8,
-    pub sound_timer: u8,
+    pub(crate) delay_timer: u8,
+    pub(crate) sound_timer: u8,
 
     // peripherals
-    keyboard: bitvec::vec::BitVec<LocalBits,usize>,
-    display: [u8;DISP_HEIGHT*DISP_WIDTH*4],
-
+    pub(crate) keyboard: bitvec::vec::BitVec<LocalBits,usize>,
+    pub(crate) display: [u8;DISP_HEIGHT*DISP_WIDTH],
 }
 
 
@@ -54,7 +53,7 @@ impl Cpu {
             delay_timer: 0,
             sound_timer: 0,
             keyboard: bitvec![mut 0u8; 256],
-            display: [0u8;DISP_HEIGHT*DISP_WIDTH*4],
+            display: [0u8;DISP_HEIGHT*DISP_WIDTH],
         }
     }
 
@@ -107,16 +106,17 @@ impl Cpu {
     /**
      * Each cycle will call this after reading in another 16 bit opcode
      */
-    pub fn execute_instruction(&mut self, opcode: u16) {
+    pub fn execute_instruction(&mut self, opcode: u16) -> Result<()> {
+        
         let nums = [
             (opcode >> 12) & 0xF,
             (opcode >> 8) & 0xF,
             (opcode >> 4) & 0xF,
             opcode & 0xF,
         ];
-        //println!("{:?}", nums);
+
         match nums {
-            //[0,0,0xE,0] => {inst::print_instruction(i,"CLS","clear screen");},
+            [0,0,0xE,0] => inst::cls(self),
             [0, 0, 0xE, 0xE] => inst::ret(self),
             [0, _, _, _] => inst::sys(),
             [1, _, _, _] => inst::jmp_nnn(self, opcode),
@@ -139,9 +139,9 @@ impl Cpu {
             [0xA, _, _, _] => inst::ld_i_nnn(self, opcode),
             [0xB, _, _, _] => inst::jmp_v0_nnn(self, opcode),
             [0xC, x, _, _] => inst::rnd_vx_kk(self, x, opcode),
-            /*[0xD,x,y,n] => {("DRW V{:X}, V{:X}, {:X}", x,y,n),comments);},
-            [0xE,x,9,0xE] => {"SKP V{:X}", x),comments);},
-            [0xE,x,0xA,1] => {"SKNP V{:X}", x),comments);},*/
+            [0xD, x, y, n] => inst::drw_vx_vy_n(self, x, y, n),
+            [0xE,x,9,0xE] => inst::skp_vx(self,x),
+            [0xE,x,0xA,1] => inst::sknp_vx(self,x),
             [0xF, x, 0, 7] => inst::ld_vx_dt(self, x),
             //[0xF,x,0,0xA] => {"LD V{:X}, K", x),comments);},
             [0xF, x, 1, 5] => inst::ld_dt_vx(self, x),
@@ -152,11 +152,11 @@ impl Cpu {
             [0xF,x,5,5] => {"LD [I], V{:X}", x),comments);},
             [0xF,x,6,5] => {"LD V{:X}, [I]", x),comments);}, */
             [_, _, _, _] => {
-                println!("{:X}", opcode);
-                unimplemented!();
+                bail!("[-] opcode 0x{:x} not implemented",opcode);
             }
         }
         // move to next opcode
         self.program_counter += 2;
+        Ok(())
     }
 }
