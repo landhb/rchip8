@@ -56,6 +56,32 @@ pub static FONT_SET: [u8; 80] = [
   0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 ];
 
+/**
+ * Translate a modern key code to its
+ * chip8 equivalent
+ */
+fn translate_key(code: usize) -> usize {
+    match code {
+        49 => 1,   // 1
+        50 => 2,   // 2
+        51 => 3,   // 3
+        52 => 0xC, // 4
+        81 => 4,   // Q
+        87 => 5,   // W
+        69 => 6,   // E
+        82 => 0xD, // R
+        64 => 7,   // A
+        83 => 8,   // S
+        68 => 9,   // D
+        70 => 0xE, // F
+        90 => 0xA, // Z
+        88 => 0x0, // X
+        67 => 0xB, // C
+        86 => 0xF, // V
+        _ => 0,
+    }
+}
+
 
 impl Cpu {
 
@@ -120,6 +146,7 @@ impl Cpu {
         &self.display
     }
 
+
     /**
      * Set the given key to the down position
      * If halted, resume execution
@@ -127,16 +154,16 @@ impl Cpu {
     pub fn key_down(&mut self,key: usize) {
         if self.halted {
             self.halted = false;
-            self.registers[self.store_key] = key as u8;
+            self.registers[self.store_key] = translate_key(key) as u8;
         }
-        self.keyboard.set(key,true);
+        self.keyboard.set(translate_key(key),true);
     }
 
     /**
      * Set the given key to the up position
      */
     pub fn key_up(&mut self,key: usize) {
-        self.keyboard.set(key,false);
+        self.keyboard.set(translate_key(key),false);
     }
 
     /**
@@ -153,7 +180,7 @@ impl Cpu {
      */
     pub fn execute_instruction(&mut self, opcode: u16) -> Result<()> {
 
-        // All execution will be halted into
+        // All execution will be halted until
         // a key down event occurs
         if self.halted {
             return Ok(());
