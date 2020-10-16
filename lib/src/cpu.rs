@@ -13,22 +13,22 @@ pub const DISP_WIDTH: usize = 64;
 pub const DISP_HEIGHT: usize = 32;
 
 pub struct Cpu {
-    pub(crate) stack: Vec<u16>,
-    pub(crate) memory: [u8; MEM_SIZE],
+    pub stack: Vec<u16>,
+    pub memory: [u8; MEM_SIZE],
 
-    pub(crate) registers: [u8; 16],
+    pub registers: [u8; 16],
 
     // special registers/timers
-    pub(crate) i_register: u16,
-    pub(crate) delay_timer: u8,
-    pub(crate) sound_timer: u8,
+    pub i_register: u16,
+    pub delay_timer: u8,
+    pub sound_timer: u8,
 
     // pc
-    pub(crate) program_counter: usize,
+    pub program_counter: usize,
 
     // peripherals
-    pub(crate) keyboard: bitvec::vec::BitVec<LocalBits,usize>,
-    pub(crate) display: [u8;DISP_HEIGHT*DISP_WIDTH],
+    pub keyboard: bitvec::vec::BitVec<LocalBits,usize>,
+    pub display: [u8;DISP_HEIGHT*DISP_WIDTH],
 
     // internal state, true if halted
     // to pause for a key press event

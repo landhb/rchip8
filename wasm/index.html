@@ -1,4 +1,11 @@
 <html>
+  <style>
+    canvas {
+      image-rendering: -moz-crisp-edges;    
+      image-rendering: -webkit-crisp-edges; 
+      image-rendering: pixelated;           
+    }
+  </style>
   <head>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
   </head>
@@ -88,7 +95,7 @@
         /**
          * Load the program into memory
          */
-        const res = await fetch("./roms/PONG");
+        const res = await fetch("./roms/WIPEOFF");
         const buffer = await res.arrayBuffer();
         let prog = new Uint8Array(buffer);
         const result = load_program(prog);

@@ -295,7 +295,9 @@ pub(crate) mod inst {
      * (Vx, Vy), set VF = collision.
      */
     pub fn drw_vx_vy_n(cpu: &mut Cpu, regx: u16, regy: u16, n: u16) {
-        let start_pos = (regx + (regy*(DISP_WIDTH as u16))) as usize;
+        let x = cpu.registers[regx as usize] as u16;
+        let y = cpu.registers[regy as usize] as u16;
+        let start_pos = (x + (y*(DISP_WIDTH as u16))) as usize;
         cpu.registers[FLAG_REGISTER] = 0;
         for row in 0..(n as usize) {
             for col in 0..8 {
@@ -310,8 +312,6 @@ pub(crate) mod inst {
                     cpu.registers[FLAG_REGISTER] = 1;
                 }
                 cpu.display[disp_pos] ^= mem_val;
-                
-                //println!("writing to display[{:?}] from memory[{:?}]", disp_pos, mem_pos);
             }
         }
     } 

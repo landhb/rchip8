@@ -109,10 +109,10 @@ pub fn handle_key_event(code: u32, event_type: &str) {
 pub fn update_display(display: &mut [u8]) {
 	let cpu = CPU.read().unwrap();
 	let data = cpu.get_display();
-	for i in 0..data.len()/4 {
+	for i in 0..data.len() {
 		display[i*4 + 0] = if data[i] == 1 { 0x33 } else { 0x0 };
 		display[i*4 + 1] = if data[i] == 1 { 0xff } else { 0x0 };
 		display[i*4 + 2] = if data[i] == 1 { 0x66 } else { 0x0 };
 		display[i*4 + 3] = 255;
-	}
+	} 
 }

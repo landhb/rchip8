@@ -52,8 +52,8 @@ impl Debugger for crate::cpu::Cpu {
                 println!("{} 0x{:02x}", format!("V{:X}:", i).red(), self.registers[i]);
             }
         }
-        println!("{} 0x{:02x}", "DT:".yellow(), self.dt_register);
-        println!("{} 0x{:02x}", "ST:".yellow(), self.st_register);
+        println!("{} 0x{:02x}", "DT:".yellow(), self.delay_timer);
+        println!("{} 0x{:02x}", "ST:".yellow(), self.sound_timer);
         println!("{} 0x{:04x}", " I:".yellow(), self.i_register);
 
         println!("────────────────────────────[  DISASM   ]──────────────────────────────────");

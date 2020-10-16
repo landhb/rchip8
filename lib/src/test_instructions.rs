@@ -404,11 +404,12 @@ mod test_instructions {
     }
 
 
-    /* TODO test draw  #[test]
+    // TODO test draw  #[test]
+    #[test]
     fn test_drw_vx_vy_n() {
         let mut cpu = cpu::Cpu::new();
         cpu.execute_instruction(0xD818).unwrap();
-    } */
+    } 
 
     // TODO TEST KEY SKIPS
     // test EX9E & EXA1
