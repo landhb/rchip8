@@ -321,7 +321,8 @@ pub(crate) mod inst {
      * Skip next instruction if key with the value of Vx is pressed.
      */
     pub(crate) fn skp_vx(cpu: &mut Cpu, reg: u16) {
-        if cpu.keyboard.get(reg as usize) == Some(&true) {
+        let key = cpu.registers[reg as usize] as usize;
+        if cpu.keyboard.get(key) == Some(&true) {
             cpu.program_counter += 2;
         }
     }
@@ -331,7 +332,8 @@ pub(crate) mod inst {
      * Skip next instruction if key with the value of Vx is not pressed.
      */
     pub(crate) fn sknp_vx(cpu: &mut Cpu, reg: u16) {
-        if cpu.keyboard.get(reg as usize) == Some(&false) {
+        let key = cpu.registers[reg as usize] as usize;
+        if cpu.keyboard.get(key) == Some(&false) {
             cpu.program_counter += 2;
         }
     }

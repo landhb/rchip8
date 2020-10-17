@@ -167,6 +167,14 @@ impl Cpu {
     }
 
     /**
+     * Decrement timers
+     */
+    pub fn decrement_timers(&mut self) {
+       if self.delay_timer > 0 { self.delay_timer -= 1; }
+       if self.sound_timer > 0 { self.sound_timer -= 1; }
+    }
+
+    /**
      * Fetch the next 16 bit opcode from memory
      */
     pub fn fetch_instruction(&self) -> u16 {

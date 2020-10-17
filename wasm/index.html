@@ -1,18 +1,34 @@
 <html>
   <style>
     canvas {
-      image-rendering: -moz-crisp-edges;    
-      image-rendering: -webkit-crisp-edges; 
-      image-rendering: pixelated;           
+    	image-rendering: -moz-crisp-edges;    
+    	image-rendering: -webkit-crisp-edges; 
+    	image-rendering: pixelated;           
+    }
+    body {
+	width: 512px;
+        margin-left: auto;
+	margin-right: auto;
+    }
+    h1 {
+	text-align: center;
+    }
+    p {
+	text-align: center;
     }
   </style>
   <head>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
   </head>
   <body>
+    <h1>Chip8 Emulator in Rust + Wasm</h1> 
+    <br>
+    <p>
+    	Source code can be located <a href="https://github.com/landhb/rchip8">here</a>
+    <p>
     <div class='screen'>
-    <canvas id='canvas' width='64' height='32'
-      style='transform: scale(8); transform-origin: top left'></canvas>
+    	<canvas id='canvas' width='64' height='32'
+    	style='transform: scale(8); transform-origin: top left'></canvas>
     </div>
     <!-- Note the usage of `type=module` here as this is an ES6 module -->
     <script type="module">
@@ -28,8 +44,9 @@
       import init, { 
         load_program,      // Rust lib binary loader
         handle_key_event,  // Rust lib key up/key down event handler
-        execute_cycle,     // Rust lib, execute a chip8 cycle
-        update_display,    // Rust lib, write to display
+        execute_cycle,     // Rust lib, execute a chip8 cycle - 500Hz
+        update_display,    // Rust lib, write to display - 60Hz
+	update_timers,     // Rust lib, update timers - 60Hz
       } from './pkg/rchip8_wasm.js';
 
       /**
@@ -56,6 +73,7 @@
         update_display(imageData.data);
         ctx.putImageData(imageData, 0, 0);
         window.requestAnimationFrame(display_callback);
+	update_timers();
       };
 
 

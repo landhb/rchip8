@@ -43,7 +43,7 @@ pub fn main() -> Result<(), JsValue> {
     body.append_child(&val)?;
 
     Ok(())
-}*/
+} */
 
 /**
  * Load a binary blob as the Chip8 program
@@ -116,4 +116,13 @@ pub fn update_display(display: &mut [u8]) {
 		display[i*4 + 2] = if data[i] == 1 { 0x66 } else { 0x0 };
 		display[i*4 + 3] = 255;
 	} 
+}
+
+/**
+ *  Update the timers, should get called at 60Hz
+ */
+#[wasm_bindgen]
+pub fn update_timers() {
+    let mut cpu = CPU.write().unwrap();
+    cpu.decrement_timers();
 }
