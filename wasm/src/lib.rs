@@ -3,10 +3,8 @@ use std::sync::RwLock;
 
 use wasm_bindgen::prelude::*;
 
-
 #[macro_use]
 extern crate lazy_static;
-
 
 lazy_static! {
     /**
@@ -53,13 +51,13 @@ pub fn main() -> Result<(), JsValue> {
  * JS first
  */
 #[wasm_bindgen]
-pub fn load_program(prog: &[u8]) -> Result<(), JsValue>  {
+pub fn load_program(prog: &[u8]) -> Result<(), JsValue> {
     let mut cpu = CPU.write().unwrap();
     match cpu.load_from_bytes(&prog) {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => {
             console_log!("{:?}", e);
-            return Err(format!("{:?}",e).into());
+            return Err(format!("{:?}", e).into());
         }
     }
     console_log!("[+] loaded ROM");
@@ -67,20 +65,20 @@ pub fn load_program(prog: &[u8]) -> Result<(), JsValue>  {
 }
 
 /**
- * Complete a full fetch -> execute cycle for the next 
+ * Complete a full fetch -> execute cycle for the next
  * instruction
  */
 #[wasm_bindgen]
 pub fn execute_cycle() -> Result<(), JsValue> {
     let mut cpu = CPU.write().unwrap();
     let opcode = cpu.fetch_instruction();
-    console_log!("{:x}",opcode);
+    console_log!("{:x}", opcode);
     match cpu.execute_instruction(opcode) {
-    	Ok(_) => {},
-    	Err(e) => {
-    		console_log!("{:?}", e);
-    		return Err(format!("{:?}",e).into());
-    	}
+        Ok(_) => {}
+        Err(e) => {
+            console_log!("{:?}", e);
+            return Err(format!("{:?}", e).into());
+        }
     }
     Ok(())
 }
@@ -95,27 +93,27 @@ pub fn handle_key_event(code: u32, event_type: &str) {
     match event_type {
         "keydown" => cpu.key_down(code as usize),
         "keyup" => cpu.key_up(code as usize),
-        _ => {},
+        _ => {}
     }
     console_log!("got key {:?}, type: {:?}", code, event_type)
 }
 
 /**
  * Update the display by writing into the provided JS buffer
- * 
- * JS reference for the buffer: 
+ *
+ * JS reference for the buffer:
  * https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/createImageData
  */
 #[wasm_bindgen]
 pub fn update_display(display: &mut [u8]) {
-	let cpu = CPU.read().unwrap();
-	let data = cpu.get_display();
-	for i in 0..data.len() {
-		display[i*4 + 0] = if data[i] == 1 { 0x33 } else { 0x0 };
-		display[i*4 + 1] = if data[i] == 1 { 0xff } else { 0x0 };
-		display[i*4 + 2] = if data[i] == 1 { 0x66 } else { 0x0 };
-		display[i*4 + 3] = 255;
-	} 
+    let cpu = CPU.read().unwrap();
+    let data = cpu.get_display();
+    for i in 0..data.len() {
+        display[i * 4 + 0] = if data[i] == 1 { 0x33 } else { 0x0 };
+        display[i * 4 + 1] = if data[i] == 1 { 0xff } else { 0x0 };
+        display[i * 4 + 2] = if data[i] == 1 { 0x66 } else { 0x0 };
+        display[i * 4 + 3] = 255;
+    }
 }
 
 /**

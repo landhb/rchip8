@@ -86,8 +86,8 @@ mod test_instructions {
 
         for i in 1..0xf {
             assert_eq!(cpu.registers[i], 0);
-            cpu.execute_instruction(0x6050 + ((i as u16) * 0x100)
-             + (i as u16)).unwrap(); // LD VX, 0x5X
+            cpu.execute_instruction(0x6050 + ((i as u16) * 0x100) + (i as u16))
+                .unwrap(); // LD VX, 0x5X
             assert_eq!(cpu.registers[i], 0x50 + (i as u8));
         }
     }
@@ -403,17 +403,15 @@ mod test_instructions {
         assert_eq!(cpu.registers[0], 0);
     }
 
-
     // TODO test draw  #[test]
     #[test]
     fn test_drw_vx_vy_n() {
         let mut cpu = cpu::Cpu::new();
         cpu.execute_instruction(0xD818).unwrap();
-    } 
+    }
 
     // TODO TEST KEY SKIPS
     // test EX9E & EXA1
-
 
     #[test]
     fn test_ld_vx_dt() {
@@ -462,13 +460,10 @@ mod test_instructions {
         assert_eq!(cpu.sound_timer, cpu.registers[0]);
     }
 
-
     // TODO
     // test_add_i_vx
     // test_ld_f_vx
     // test_ld_b_vx
     // test_ld_i_vx
     // test_ld_vx_i
-
-
 }

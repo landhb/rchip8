@@ -94,7 +94,7 @@
         handle_key_event,  // Rust lib key up/key down event handler
         execute_cycle,     // Rust lib, execute a chip8 cycle - 500Hz
         update_display,    // Rust lib, write to display - 60Hz
-	update_timers,     // Rust lib, update timers - 60Hz
+        update_timers,     // Rust lib, update timers - 60Hz
       } from './pkg/rchip8_wasm.js';
 
       /**
@@ -120,8 +120,8 @@
         const imageData = ctx.createImageData(WIDTH, HEIGHT);
         update_display(imageData.data);
         ctx.putImageData(imageData, 0, 0);
+        update_timers()
         window.requestAnimationFrame(display_callback);
-	update_timers();
       };
 
 
@@ -130,13 +130,13 @@
        */
       async function run() {
         
-	// Load & init wasm module
+        // Load & init wasm module
         await init();
 
         /**
          * Load the program into memory
          */
-        const res = await fetch("./roms/PONG");
+        const res = await fetch("./roms/WIPEOFF");
         const buffer = await res.arrayBuffer();
         let prog = new Uint8Array(buffer);
         const result = load_program(prog);
@@ -157,7 +157,6 @@
          * Begin redrawing the screen
          */
         window.requestAnimationFrame(display_callback);
-       
       }
       run();
     </script>

@@ -1,6 +1,6 @@
 use anyhow::Result;
-use std::env;
 use rchip8::cpu;
+use std::env;
 
 // bring the Debugger Trait in-scope
 // so that we may invoke the debugger
@@ -8,10 +8,10 @@ mod debugger;
 use crate::debugger::Debugger;
 
 // terminal graphics
+use std::io::{stdin, stdout, Write};
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
-use std::io::{Write, stdout, stdin};
 
 /*
     Memory Map:
@@ -39,10 +39,7 @@ use std::io::{Write, stdout, stdin};
     +---------------+= 0x000 (0) Start of Chip-8 RAM
 */
 fn run(mut cpu: cpu::Cpu) -> Result<()> {
-
-   
     loop {
-
         // fetch & execute instruction
         let inst = cpu.fetch_instruction();
         cpu.execute_instruction(inst);

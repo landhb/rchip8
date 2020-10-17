@@ -1,7 +1,7 @@
 pub(crate) mod inst {
 
     use crate::cpu::Cpu;
-    use crate::cpu::{FLAG_REGISTER,DISP_WIDTH,FONT_SET};
+    use crate::cpu::{DISP_WIDTH, FLAG_REGISTER, FONT_SET};
 
     /**  
      *  0nnn - SYS addr
@@ -291,17 +291,17 @@ pub(crate) mod inst {
 
     /**
      * Dxyn - DRW Vx, Vy, nibble
-     * Display n-byte sprite starting at memory location I at 
+     * Display n-byte sprite starting at memory location I at
      * (Vx, Vy), set VF = collision.
      */
     pub fn drw_vx_vy_n(cpu: &mut Cpu, regx: u16, regy: u16, n: u16) {
         let x = cpu.registers[regx as usize] as u16;
         let y = cpu.registers[regy as usize] as u16;
-        let start_pos = (x + (y*(DISP_WIDTH as u16))) as usize;
+        let start_pos = (x + (y * (DISP_WIDTH as u16))) as usize;
         cpu.registers[FLAG_REGISTER] = 0;
         for row in 0..(n as usize) {
             for col in 0..8 {
-                let disp_pos = start_pos + col + (row*DISP_WIDTH);
+                let disp_pos = start_pos + col + (row * DISP_WIDTH);
                 let mem_pos = (cpu.i_register as usize) + row;
 
                 // each byte in memory contains 8 pixels for our display
@@ -314,7 +314,7 @@ pub(crate) mod inst {
                 cpu.display[disp_pos] ^= mem_val;
             }
         }
-    } 
+    }
 
     /**
      * Ex9E - SKP Vx
@@ -327,7 +327,7 @@ pub(crate) mod inst {
         }
     }
 
-    /** 
+    /**
      * ExA1 - SKNP Vx
      * Skip next instruction if key with the value of Vx is not pressed.
      */
@@ -370,19 +370,21 @@ pub(crate) mod inst {
      * Set I = I + Vx.
      */
     pub(crate) fn add_i_vx(cpu: &mut Cpu, reg: u16) {
-        let _ = cpu.i_register.wrapping_add(cpu.registers[reg as usize].into());
+        let _ = cpu
+            .i_register
+            .wrapping_add(cpu.registers[reg as usize].into());
     }
 
     /**
      * Fx29 - LD F, Vx
      * Set I = location of sprite for digit Vx.
-     * The value of I is set to the location for the hexadecimal sprite 
+     * The value of I is set to the location for the hexadecimal sprite
      * corresponding to the value of Vx in the font set
      */
     pub(crate) fn ld_f_vx(cpu: &mut Cpu, reg: u16) {
-        let addr = cpu.registers[reg as usize]*5;
+        let addr = cpu.registers[reg as usize] * 5;
         if addr as usize > FONT_SET.len() {
-            panic!("No fontset for {:?}",addr);
+            panic!("No fontset for {:?}", addr);
         }
         cpu.i_register = addr.into();
     }
@@ -397,9 +399,9 @@ pub(crate) mod inst {
      */
     pub(crate) fn ld_b_vx(cpu: &mut Cpu, reg: u16) {
         let addr = cpu.i_register as usize;
-        cpu.memory[addr] = (cpu.registers[reg as usize]/100) % 10;
-        cpu.memory[addr+1] = (cpu.registers[reg as usize]/10) % 10;
-        cpu.memory[addr+2] = cpu.registers[reg as usize] % 10;
+        cpu.memory[addr] = (cpu.registers[reg as usize] / 100) % 10;
+        cpu.memory[addr + 1] = (cpu.registers[reg as usize] / 10) % 10;
+        cpu.memory[addr + 2] = cpu.registers[reg as usize] % 10;
     }
 
     /**
@@ -409,7 +411,7 @@ pub(crate) mod inst {
     pub(crate) fn ld_i_vx(cpu: &mut Cpu, reg: u16) {
         let addr = cpu.i_register as usize;
         let n = reg as usize;
-        cpu.memory[addr..addr+n].copy_from_slice(&cpu.registers[0..n]);
+        cpu.memory[addr..addr + n].copy_from_slice(&cpu.registers[0..n]);
     }
 
     /*
@@ -419,7 +421,6 @@ pub(crate) mod inst {
     pub(crate) fn ld_vx_i(cpu: &mut Cpu, reg: u16) {
         let addr = cpu.i_register as usize;
         let n = reg as usize;
-        cpu.registers[0..n].copy_from_slice(&cpu.memory[addr..addr+n]);
+        cpu.registers[0..n].copy_from_slice(&cpu.memory[addr..addr + n]);
     }
-
 }
