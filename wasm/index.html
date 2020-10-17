@@ -104,7 +104,7 @@
       const ctx = canvas.getContext("2d");
       ctx.fillStyle = "black";
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
+      const imageData = ctx.createImageData(WIDTH,HEIGHT);
 
       /**
        * Key event callback
@@ -117,7 +117,6 @@
        * Display callback, redraw the screen 
        */
       async function display_callback() {
-        const imageData = ctx.createImageData(WIDTH, HEIGHT);
         update_display(imageData.data);
         ctx.putImageData(imageData, 0, 0);
         update_timers()
@@ -148,10 +147,10 @@
         document.addEventListener('keydown', key_press_callback);
 
         /**
-         * Setup clock speed, Chip8 clock speed is 500HZ 
-         * which is 2 milliseconds between ticks
+         * Setup clock speed, Chip8 clock speed is 540HZ 
+         * which is ~1.85 milliseconds between ticks
          */
-        window.setInterval(execute_cycle, 2);
+        window.setInterval(execute_cycle, 1.85);
 
         /**
          * Begin redrawing the screen
