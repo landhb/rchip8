@@ -9,26 +9,78 @@
 	width: 512px;
         margin-left: auto;
 	margin-right: auto;
+	font-family:"Inconsolata";
+	font-size:100%;
+	font-weight:400;
+	color:#272727;
+	background:#fff;
     }
     h1 {
 	text-align: center;
     }
     p {
+	text-align: left;
+    }
+    ul{
+    	list-style:none;
+	margin-top:10px;
 	text-align: center;
+	margin: 0;
+	padding: 0;
+    }
+    ul li {
+	display:inline;
+	padding:0;
+	margin:0;
+	padding-left:0px;
+    }
+    inlinecode {
+        border-radius: 5px; 
+	-moz-border-radius: 5px; 
+        -webkit-border-radius: 5px; 
+        border: 1px solid #BCBEC0;
+        padding: 2px;
+	font:12px Monaco,Consolas,"Andale  Mono","DejaVu Sans Mono",monospace
+    }
+    .screen {
+	width: 512px;
+        height: 256px;
+	border: 1px solid var(--terminal-color);
+	padding: 5px;
+	margin-bottom: 20px;
     }
   </style>
   <head>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inconsolata:400,700">
   </head>
   <body>
     <h1>Chip8 Emulator in Rust & Wasm</h1> 
-    <br>
+    <ul>
+	 <li>
+		<a href="https://blog.landhb.dev">Blog</a>
+         </li>
+         <li>
+                <a href="https://github.com/landhb">Github</a>
+         </li>
+	 <li>
+		 <a href="https://github.com/landhb/rchip8">Repository</a>
+	 </li>
+    </ul>
     <p>
-    	Source code can be located <a href="https://github.com/landhb/rchip8">here</a>
+    This is a quick emulator/interpreter project I made to gain some familiarity with Rust & Wasm! If you want to read more about CHIP-8, <a href="https://en.wikipedia.org/wiki/CHIP-8">wikipedia</a> has a good deal of background. And here is a great <a href="http://devernay.free.fr/hacks/chip8/C8TECH10.HTM">technical reference</a>. 
     <p>
     <div class='screen'>
     	<canvas id='canvas' width='64' height='32'
     	style='transform: scale(8); transform-origin: top left'></canvas>
+    </div>
+    <div>
+<pre>Game Controls:
+
+  move left: <inlinecode>q</inlinecode>
+
+  move right: <inlinecode>e</inlinecode>
+</pre>
     </div>
     <!-- Note the usage of `type=module` here as this is an ES6 module -->
     <script type="module">
@@ -84,7 +136,7 @@
         /**
          * Load the program into memory
          */
-        const res = await fetch("./roms/WIPEOFF");
+        const res = await fetch("./roms/PONG");
         const buffer = await res.arrayBuffer();
         let prog = new Uint8Array(buffer);
         const result = load_program(prog);
