@@ -437,11 +437,11 @@ mod test_instructions {
         cpu.execute_instruction(0x60fe).unwrap();
         assert_eq!(cpu.program_counter, 0x202);
 
-        // press the 5 key
-        cpu.key_down(0x5);
+        // press the Q key on a modern keyboard
+        cpu.key_down(81);
 
-        // V0 should contain 0x5
-        assert_eq!(cpu.registers[0], 0x5);
+        // V0 should contain the chip8 key code 4
+        assert_eq!(cpu.registers[0], 0x4);
     }
 
     #[test]
