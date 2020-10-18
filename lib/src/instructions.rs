@@ -1,7 +1,7 @@
 pub(crate) mod inst {
 
     use crate::cpu::Cpu;
-    use crate::cpu::{DISP_WIDTH, FLAG_REGISTER, FONT_SET};
+    use crate::cpu::{DISP_WIDTH, DISP_HEIGHT, FLAG_REGISTER, FONT_SET};
 
     /**  
      *  0nnn - SYS addr
@@ -295,8 +295,8 @@ pub(crate) mod inst {
      * (Vx, Vy), set VF = collision.
      */
     pub fn drw_vx_vy_n(cpu: &mut Cpu, regx: u16, regy: u16, n: u16) {
-        let x = cpu.registers[regx as usize] as u16;
-        let y = cpu.registers[regy as usize] as u16;
+        let x = ((cpu.registers[regx as usize] as usize) % DISP_WIDTH) as u16;
+        let y = ((cpu.registers[regy as usize] as usize) % DISP_HEIGHT) as u16;
         let start_pos = (x + (y * (DISP_WIDTH as u16))) as usize;
         cpu.registers[FLAG_REGISTER] = 0;
         for row in 0..(n as usize) {
