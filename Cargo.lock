@@ -106,6 +106,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "console_error_panic_hook"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8d976903543e0c48546a91908f21588a680a8c8f984df9a5d69feccb2b2a211"
+dependencies = [
+ "cfg-if",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "constant_time_eq"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -432,6 +442,7 @@ dependencies = [
 name = "rchip8-wasm"
 version = "0.1.0"
 dependencies = [
+ "console_error_panic_hook",
  "lazy_static",
  "rchip8",
  "wasm-bindgen",

@@ -1,6 +1,5 @@
 use rchip8::cpu::Cpu;
 use std::sync::RwLock;
-
 use wasm_bindgen::prelude::*;
 
 #[macro_use]
@@ -25,6 +24,14 @@ macro_rules! console_log {
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
 }
 
+/**
+ * Wasm init
+ */
+#[wasm_bindgen(start)]
+pub fn main() -> Result<(), JsValue> {
+    console_error_panic_hook::set_once();
+    Ok(())
+}
 
 /**
  * Load a binary blob as the Chip8 program
