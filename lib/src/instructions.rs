@@ -301,8 +301,13 @@ pub(crate) mod inst {
         cpu.registers[FLAG_REGISTER] = 0;
         for row in 0..(n as usize) {
             for col in 0..8 {
-                let disp_pos = start_pos + col + (row * DISP_WIDTH);
+                let disp_pos = start_pos + col + (row*DISP_WIDTH); 
                 let mem_pos = (cpu.i_register as usize) + row;
+
+                // check if boundary has been reached
+                if disp_pos >= cpu.display.len() {
+                    continue;
+                }
 
                 // each byte in memory contains 8 pixels for our display
                 // so we must get the individual bit value for this row,col
