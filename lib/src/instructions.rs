@@ -315,7 +315,8 @@ pub(crate) mod inst {
 
                 if cpu.display[disp_pos] == 1 && mem_val == 1 {
                     cpu.registers[FLAG_REGISTER] = 1;
-                }
+                    cpu.phosphor_glow[disp_pos] = 2; // ticks until clear
+                } 
                 cpu.display[disp_pos] ^= mem_val;
             }
         }
@@ -426,6 +427,6 @@ pub(crate) mod inst {
     pub(crate) fn ld_vx_i(cpu: &mut Cpu, reg: u16) {
         let addr = cpu.i_register as usize;
         let n = reg as usize;
-        cpu.registers[0..n].copy_from_slice(&cpu.memory[addr..addr + n]);
+        cpu.registers[0..n+1].copy_from_slice(&cpu.memory[addr..addr + n+1]);
     }
 }

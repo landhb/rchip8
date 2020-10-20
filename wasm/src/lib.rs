@@ -1,5 +1,5 @@
 use rchip8::cpu::Cpu;
-use std::sync::RwLock;
+use std::sync::Mutex;
 use wasm_bindgen::prelude::*;
 
 #[macro_use]
@@ -9,7 +9,7 @@ lazy_static! {
     /**
      * Our runtime will instantiate a global CPU instance
      */
-    static ref CPU: RwLock<Cpu> = RwLock::new(Cpu::new());
+    static ref CPU: Mutex<Cpu> = Mutex::new(Cpu::new());
 }
 
 #[wasm_bindgen]
@@ -28,7 +28,7 @@ macro_rules! console_log {
  * Wasm init
  */
 #[wasm_bindgen(start)]
-pub fn main() -> Result<(), JsValue> {
+pub fn entry() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
     Ok(())
 }
@@ -42,7 +42,7 @@ pub fn main() -> Result<(), JsValue> {
  */
 #[wasm_bindgen]
 pub fn load_program(prog: &[u8]) -> Result<(), JsValue> {
-    let mut cpu = CPU.write().unwrap();
+    let mut cpu = CPU.lock().unwrap();
     match cpu.load_from_bytes(&prog) {
         Ok(_) => {}
         Err(e) => {
@@ -60,7 +60,7 @@ pub fn load_program(prog: &[u8]) -> Result<(), JsValue> {
  */
 #[wasm_bindgen]
 pub fn execute_cycle() -> Result<(), JsValue> {
-    let mut cpu = CPU.write().unwrap();
+    let mut cpu = CPU.lock().unwrap();
     let opcode = cpu.fetch_instruction();
     console_log!("{:x}", opcode);
     match cpu.execute_instruction(opcode) {
@@ -79,7 +79,7 @@ pub fn execute_cycle() -> Result<(), JsValue> {
  */
 #[wasm_bindgen]
 pub fn handle_key_event(code: u32, event_type: &str) {
-    let mut cpu = CPU.write().unwrap();
+    let mut cpu = CPU.lock().unwrap();
     match event_type {
         "keydown" => cpu.key_down(code as usize),
         "keyup" => cpu.key_up(code as usize),
@@ -96,13 +96,14 @@ pub fn handle_key_event(code: u32, event_type: &str) {
  */
 #[wasm_bindgen]
 pub fn update_display(display: &mut [u8]) {
-    let cpu = CPU.read().unwrap();
-    let data = cpu.get_display();
+    let mut cpu = CPU.lock().unwrap();
+    let (data,glow) = cpu.get_display();
     for i in 0..data.len() {
-        display[i * 4 + 0] = if data[i] == 1 { 0x33 } else { 0x0 };
-        display[i * 4 + 1] = if data[i] == 1 { 0xff } else { 0x0 };
-        display[i * 4 + 2] = if data[i] == 1 { 0x66 } else { 0x0 };
+        display[i * 4 + 0] = if data[i] == 1 { 0x33 } else if glow[i] > 0 { 0x33 } else { 0x0 };
+        display[i * 4 + 1] = if data[i] == 1 { 0xff } else if glow[i] > 0 { 0xff } else { 0x0 };
+        display[i * 4 + 2] = if data[i] == 1 { 0x66 } else if glow[i] > 0 { 0x99+glow[i] } else { 0x0 };
         display[i * 4 + 3] = 255;
+        if glow[i] > 0 {glow[i] -=1;}
     }
 }
 
@@ -111,6 +112,8 @@ pub fn update_display(display: &mut [u8]) {
  */
 #[wasm_bindgen]
 pub fn update_timers() {
-    let mut cpu = CPU.write().unwrap();
+    let mut cpu = CPU.lock().unwrap();
     cpu.decrement_timers();
 }
+
+

@@ -29,6 +29,7 @@ pub struct Cpu {
     // peripherals
     pub keyboard: bitvec::vec::BitVec<LocalBits, usize>,
     pub display: [u8; DISP_HEIGHT * DISP_WIDTH],
+    pub phosphor_glow: [u8; DISP_HEIGHT * DISP_WIDTH],
 
     // internal state, true if halted
     // to pause for a key press event
@@ -96,6 +97,7 @@ impl Cpu {
             sound_timer: 0,
             keyboard: bitvec![mut 0u8; 16],
             display: [0u8; DISP_HEIGHT * DISP_WIDTH],
+            phosphor_glow: [0u8; DISP_HEIGHT * DISP_WIDTH],
             halted: false,
             store_key: 0,
         };
@@ -137,8 +139,8 @@ impl Cpu {
     /**
      * Obtain a reference to the display buffer
      */
-    pub fn get_display(&self) -> &[u8] {
-        &self.display
+    pub fn get_display(&mut self) -> (&[u8],&mut [u8]) {
+        (&self.display,&mut self.phosphor_glow)
     }
 
     /**
