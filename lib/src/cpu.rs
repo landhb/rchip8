@@ -139,8 +139,8 @@ impl Cpu {
     /**
      * Obtain a reference to the display buffer
      */
-    pub fn get_display(&mut self) -> (&[u8],&mut [u8]) {
-        (&self.display,&mut self.phosphor_glow)
+    pub fn get_display(&mut self) -> (&[u8], &mut [u8]) {
+        (&self.display, &mut self.phosphor_glow)
     }
 
     /**

@@ -97,13 +97,20 @@ pub fn handle_key_event(code: u32, event_type: &str) {
 #[wasm_bindgen]
 pub fn update_display(display: &mut [u8]) {
     let mut cpu = CPU.lock().unwrap();
-    let (data,glow) = cpu.get_display();
+    let (data, glow) = cpu.get_display();
     for i in 0..data.len() {
-        display[i * 4 + 0] = if data[i] == 1 { 0x33 } else if glow[i] > 0 { 0x33 } else { 0x0 };
-        display[i * 4 + 1] = if data[i] == 1 { 0xff } else if glow[i] > 0 { 0xff } else { 0x0 };
-        display[i * 4 + 2] = if data[i] == 1 { 0x66 } else if glow[i] > 0 { 0x99+glow[i] } else { 0x0 };
+        if glow[i] > 0 {
+            display[i * 4 + 0] = 0x33;
+            display[i * 4 + 1] = 0xff;
+            display[i * 4 + 2] = 0x99 + glow[i];
+            glow[i] -= 1;
+            continue;
+        }
+
+        display[i * 4 + 0] = if data[i] == 1 { 0x33 } else { 0x0 };
+        display[i * 4 + 1] = if data[i] == 1 { 0xff } else { 0x0 };
+        display[i * 4 + 2] = if data[i] == 1 { 0x66 } else { 0x0 };
         display[i * 4 + 3] = 255;
-        if glow[i] > 0 {glow[i] -=1;}
     }
 }
 
@@ -115,5 +122,3 @@ pub fn update_timers() {
     let mut cpu = CPU.lock().unwrap();
     cpu.decrement_timers();
 }
-
-

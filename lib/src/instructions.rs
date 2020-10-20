@@ -1,7 +1,7 @@
 pub(crate) mod inst {
 
     use crate::cpu::Cpu;
-    use crate::cpu::{DISP_WIDTH, DISP_HEIGHT, FLAG_REGISTER, FONT_SET};
+    use crate::cpu::{DISP_HEIGHT, DISP_WIDTH, FLAG_REGISTER, FONT_SET};
 
     /**  
      *  0nnn - SYS addr
@@ -301,7 +301,7 @@ pub(crate) mod inst {
         cpu.registers[FLAG_REGISTER] = 0;
         for row in 0..(n as usize) {
             for col in 0..8 {
-                let disp_pos = start_pos + col + (row*DISP_WIDTH); 
+                let disp_pos = start_pos + col + (row * DISP_WIDTH);
                 let mem_pos = (cpu.i_register as usize) + row;
 
                 // check if boundary has been reached
@@ -316,7 +316,7 @@ pub(crate) mod inst {
                 if cpu.display[disp_pos] == 1 && mem_val == 1 {
                     cpu.registers[FLAG_REGISTER] = 1;
                     cpu.phosphor_glow[disp_pos] = 2; // ticks until clear
-                } 
+                }
                 cpu.display[disp_pos] ^= mem_val;
             }
         }
@@ -427,6 +427,6 @@ pub(crate) mod inst {
     pub(crate) fn ld_vx_i(cpu: &mut Cpu, reg: u16) {
         let addr = cpu.i_register as usize;
         let n = reg as usize;
-        cpu.registers[0..n+1].copy_from_slice(&cpu.memory[addr..addr + n+1]);
+        cpu.registers[0..n + 1].copy_from_slice(&cpu.memory[addr..addr + n + 1]);
     }
 }

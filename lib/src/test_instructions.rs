@@ -407,10 +407,10 @@ mod test_instructions {
     #[test]
     fn test_drw_vx_vy_n() {
         let mut cpu = cpu::Cpu::new();
-        
+
         // setup x & y coordinates
         cpu.registers[0] = 8;
-        cpu.registers[1] = 32-7;
+        cpu.registers[1] = 32 - 7;
 
         // sprite at 0x000
         cpu.i_register = 0;
