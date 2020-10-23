@@ -315,12 +315,10 @@ mod test_instructions {
     fn test_shl_vx_vy() {
         let mut cpu = cpu::Cpu::new();
 
-        // LD V1, 0xff
-        assert!(cpu.registers[1] == 0);
-        cpu.execute_instruction(0x61ff).unwrap();
-        assert!(cpu.registers[1] == 0xff);
-
-        // SHR v0, v1
+        // LD V0, 0xff
+        cpu.registers[0] = 0xff;
+  
+        // SHL v0, v1
         // test VF == 1
         assert!(cpu.registers[0] == 0);
         cpu.execute_instruction(0x801e).unwrap();
@@ -415,6 +413,14 @@ mod test_instructions {
         // sprite at 0x000
         cpu.i_register = 0;
 
+        cpu.execute_instruction(0xD01F).unwrap();
+        assert_eq!(cpu.registers[FLAG_REGISTER],0);
+
+        cpu.execute_instruction(0xD01F).unwrap();
+        assert_eq!(cpu.registers[FLAG_REGISTER],1);
+
+        cpu.registers[0] = 8;
+        cpu.registers[1] = 32 - 7;
         cpu.execute_instruction(0xD01F).unwrap();
     }
 

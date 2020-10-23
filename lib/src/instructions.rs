@@ -204,13 +204,9 @@ pub(crate) mod inst {
      *  Store the value of register VY shifted right one bit in register VX
      *  Set register VF to the least significant bit prior to the shift
      */
-    pub fn shr_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16) {
-        if cpu.registers[regy as usize] & 0x1 == 0x1 {
-            cpu.registers[FLAG_REGISTER] = 1u8;
-        } else {
-            cpu.registers[FLAG_REGISTER] = 0u8;
-        }
-        cpu.registers[regx as usize] = cpu.registers[regy as usize].wrapping_shr(1);
+    pub fn shr_vx_vy(cpu: &mut Cpu, regx: u16, _regy: u16) {
+        cpu.registers[FLAG_REGISTER] = cpu.registers[regx as usize] & 1; 
+        cpu.registers[regx as usize] = cpu.registers[regx as usize].wrapping_shr(1);
     }
 
     /**  
@@ -237,13 +233,9 @@ pub(crate) mod inst {
      *  Store the value of register VY shifted left one bit in register VX
      *  Set register VF to the most significant bit prior to the shift
      */
-    pub fn shl_vx_vy(cpu: &mut Cpu, regx: u16, regy: u16) {
-        if cpu.registers[regy as usize] & (1 << 7) != 0 {
-            cpu.registers[FLAG_REGISTER] = 1u8;
-        } else {
-            cpu.registers[FLAG_REGISTER] = 0u8;
-        }
-        cpu.registers[regx as usize] = cpu.registers[regy as usize].wrapping_shl(1);
+    pub fn shl_vx_vy(cpu: &mut Cpu, regx: u16, _regy: u16) {
+        cpu.registers[FLAG_REGISTER] = cpu.registers[regx as usize] >> 7; 
+        cpu.registers[regx as usize] = cpu.registers[regx as usize].wrapping_shl(1);
     }
 
     /**
@@ -376,7 +368,7 @@ pub(crate) mod inst {
      * Set I = I + Vx.
      */
     pub(crate) fn add_i_vx(cpu: &mut Cpu, reg: u16) {
-        let _ = cpu
+        cpu.i_register = cpu
             .i_register
             .wrapping_add(cpu.registers[reg as usize].into());
     }
@@ -417,7 +409,7 @@ pub(crate) mod inst {
     pub(crate) fn ld_i_vx(cpu: &mut Cpu, reg: u16) {
         let addr = cpu.i_register as usize;
         let n = reg as usize;
-        cpu.memory[addr..addr + n].copy_from_slice(&cpu.registers[0..n]);
+        cpu.memory[addr..addr + n+1].copy_from_slice(&cpu.registers[0..n+1]);
     }
 
     /*
