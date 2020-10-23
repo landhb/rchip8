@@ -257,24 +257,20 @@ mod test_instructions {
     fn test_shr_vx_vy() {
         let mut cpu = cpu::Cpu::new();
 
-        // LD V1, 0xff
-        assert!(cpu.registers[1] == 0);
-        cpu.execute_instruction(0x61ff).unwrap();
-        assert!(cpu.registers[1] == 0xff);
+        // LD V0, 0xff
+        cpu.registers[0] = 0xff;
 
         // SHR v0, v1
         // test VF == 1
-        assert!(cpu.registers[0] == 0);
         cpu.execute_instruction(0x8016).unwrap();
         assert!(cpu.registers[0] == 0x7f);
         assert!(cpu.registers[FLAG_REGISTER] == 1);
 
         // LD V1, 2
         // test VF == 0
-        cpu.execute_instruction(0x6102).unwrap();
-        assert!(cpu.registers[1] == 0x02);
+        cpu.registers[0] = 0x7e;
         cpu.execute_instruction(0x8016).unwrap();
-        assert!(cpu.registers[0] == 0x1);
+        assert!(cpu.registers[0] == 0x3f);
         assert!(cpu.registers[FLAG_REGISTER] == 0);
     }
 
@@ -320,17 +316,15 @@ mod test_instructions {
   
         // SHL v0, v1
         // test VF == 1
-        assert!(cpu.registers[0] == 0);
         cpu.execute_instruction(0x801e).unwrap();
         assert!(cpu.registers[0] == 0xfe);
         assert!(cpu.registers[FLAG_REGISTER] == 1);
 
         // LD V1, 2
         // test VF == 0
-        cpu.execute_instruction(0x6101).unwrap();
-        assert!(cpu.registers[1] == 0x01);
+        cpu.registers[0] = 0x7f;
         cpu.execute_instruction(0x801e).unwrap();
-        assert!(cpu.registers[0] == 0x2);
+        assert!(cpu.registers[0] == 0xfe);
         assert!(cpu.registers[FLAG_REGISTER] == 0);
     }
 
