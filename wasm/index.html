@@ -135,7 +135,7 @@
         /**
          * Load the program into memory
          */
-        const res = await fetch("./roms/WIPEOFF");
+        const res = await fetch("./roms/TETRIS");
         const buffer = await res.arrayBuffer();
         let prog = new Uint8Array(buffer);
         const result = load_program(prog);

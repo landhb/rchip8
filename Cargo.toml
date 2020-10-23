@@ -2,6 +2,6 @@
 
 members = [
     "lib",         # the chip8 ISA implementation
-    "debugger",    # a binary to dissassemble and debug chip8 programs
+    #"debugger",    # a binary to dissassemble and debug chip8 programs
     "wasm",        # the wasm binary providing endpoints for the website
 ]
