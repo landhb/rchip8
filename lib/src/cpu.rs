@@ -82,6 +82,12 @@ fn translate_key(code: usize) -> usize {
     }
 }
 
+impl Default for Cpu {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Cpu {
     /**
      * Create a new CPU instance
@@ -105,6 +111,7 @@ impl Cpu {
         res.memory[0..FONT_SET.len()].copy_from_slice(&FONT_SET);
         res
     }
+
 
     /**
      * Load a chip8 program into memory

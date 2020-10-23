@@ -100,14 +100,14 @@ pub fn update_display(display: &mut [u8]) {
     let (data, glow) = cpu.get_display();
     for i in 0..data.len() {
         if glow[i] > 0 {
-            display[i * 4 + 0] = 0x33;
+            display[i * 4] = 0x33;
             display[i * 4 + 1] = 0xff;
             display[i * 4 + 2] = 0x99 + glow[i];
             glow[i] -= 1;
             continue;
         }
 
-        display[i * 4 + 0] = if data[i] == 1 { 0x33 } else { 0x0 };
+        display[i * 4] = if data[i] == 1 { 0x33 } else { 0x0 };
         display[i * 4 + 1] = if data[i] == 1 { 0xff } else { 0x0 };
         display[i * 4 + 2] = if data[i] == 1 { 0x66 } else { 0x0 };
         display[i * 4 + 3] = 255;
