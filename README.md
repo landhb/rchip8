@@ -8,6 +8,29 @@ A Chip8 interpreter with a WebAssembly front-end, written in Rust.
 
 A [live demo](https://blog.landhb.dev/rchip8) is on my blog.
 
+
+# Building
+
+Install `wasm-pack`:
+
+```sh
+cargo install wasm-pack
+```
+
+Build with:
+
+```sh
+cd wasm
+wasm-pack build --target web
+```
+
+View by running a web server in the `wasm` directory:
+
+```sh
+python3 -m http.server 
+```
+
+
 [//]: # (badges)
 [rust-version-badge]: https://img.shields.io/badge/rust-latest%20stable-blue.svg?style=flat-square
 [rust-version]: #rust-version-policy

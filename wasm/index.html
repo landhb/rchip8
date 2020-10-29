@@ -1,53 +1,53 @@
 <html>
   <style>
     canvas {
-    	image-rendering: -moz-crisp-edges;    
-    	image-rendering: -webkit-crisp-edges; 
-    	image-rendering: pixelated;           
+        image-rendering: -moz-crisp-edges;    
+        image-rendering: -webkit-crisp-edges; 
+        image-rendering: pixelated;           
     }
     body {
-	width: 512px;
+        width: 512px;
         margin-left: auto;
-	margin-right: auto;
-	font-family:"Inconsolata";
-	font-size:100%;
-	font-weight:400;
-	color:#272727;
-	background:#fff;
+        margin-right: auto;
+        font-family:"Inconsolata";
+        font-size:100%;
+        font-weight:400;
+        color:#272727;
+        background:#fff;
     }
     h1 {
-	text-align: center;
+        text-align: center;
     }
     p {
-	text-align: left;
+        text-align: left;
     }
     ul{
-    	list-style:none;
-	margin-top:10px;
-	text-align: center;
-	margin: 0;
-	padding: 0;
+        list-style:none;
+        margin-top:10px;
+        text-align: center;
+        margin: 0;
+        padding: 0;
     }
     ul li {
-	display:inline;
-	padding:0;
-	margin:0;
-	padding-left:0px;
+    display:inline;
+        padding:0;
+        margin:0;
+        padding-left:0px;
     }
     inlinecode {
         border-radius: 5px; 
-	-moz-border-radius: 5px; 
+        -moz-border-radius: 5px; 
         -webkit-border-radius: 5px; 
         border: 1px solid #BCBEC0;
         padding: 2px;
-	font:12px Monaco,Consolas,"Andale  Mono","DejaVu Sans Mono",monospace
+        font:12px Monaco,Consolas,"Andale  Mono","DejaVu Sans Mono",monospace
     }
     .screen {
-	width: 512px;
+        width: 512px;
         height: 256px;
-	border: 1px solid var(--terminal-color);
-	padding: 5px;
-	margin-bottom: 20px;
+        border: 1px solid var(--terminal-color);
+        padding: 5px;
+        margin-bottom: 20px;
     }
   </style>
   <head>
@@ -57,33 +57,38 @@
   <body>
     <h1>Chip8 Emulator in Rust & Wasm</h1> 
     <ul>
-	 <li>
-		<a href="https://blog.landhb.dev">Blog</a>
+     <li>
+        <a href="https://blog.landhb.dev">Blog</a>
          </li>
          <li>
                 <a href="https://github.com/landhb">Github</a>
          </li>
-	 <li>
-		 <a href="https://github.com/landhb/rchip8">Repository</a>
-	 </li>
+     <li>
+         <a href="https://github.com/landhb/rchip8">Repository</a>
+     </li>
     </ul>
     <p>
     This is a quick emulator/interpreter project I made to gain some familiarity with Rust & Wasm! If you want to read more about CHIP-8, <a href="https://en.wikipedia.org/wiki/CHIP-8">wikipedia</a> has a good deal of background. And here is a great <a href="http://devernay.free.fr/hacks/chip8/C8TECH10.HTM">technical reference</a>. 
     <p>
     <div class='screen'>
-    	<canvas id='canvas' width='64' height='32'
-    	style='transform: scale(8); transform-origin: top left'></canvas>
+        <canvas id='canvas' width='64' height='32'
+        style='transform: scale(8); transform-origin: top left'></canvas>
     </div>
     <div>
-<pre>Game Controls:
+<pre>Game Controls (needs a keyboard):
 
-  move left: <inlinecode>q</inlinecode>
+  rotate: <inlinecode>q</inlinecode>
+  
+  move left: <inlinecode>w</inlinecode>
 
   move right: <inlinecode>e</inlinecode>
 </pre>
     </div>
     <!-- Note the usage of `type=module` here as this is an ES6 module -->
     <script type="module">
+
+      let start;
+      let FREQUENCY = 2; // 1000ms/500Hz = 2ms
       const WIDTH = 64;
       const HEIGHT = 32;
       
@@ -113,15 +118,73 @@
         handle_key_event(e.keyCode, e.type);
       }
 
+
       /**
-       * Display callback, redraw the screen 
+       * Self-adjusting interval to account for drifting
+       * 
+       * @param {function} workFunc  Callback containing the work to be done
+       *                             for each interval
+       * @param {int}      interval  Interval speed (in milliseconds) - This 
+       * @param {function} errorFunc (Optional) Callback to run if the drift
+       *                             exceeds interval
        */
-      async function display_callback() {
-        update_display(imageData.data);
-        ctx.putImageData(imageData, 0, 0);
-        update_timers()
-        window.requestAnimationFrame(display_callback);
-      };
+      function AdjustingInterval(workFunc, interval, errorFunc) {
+          var that = this;
+          var expected, timeout;
+          this.interval = interval;
+
+          this.start = function() {
+              expected = Date.now() + this.interval;
+              timeout = setTimeout(step, this.interval);
+          }
+
+          this.stop = function() {
+              clearTimeout(timeout);
+          }
+
+          function step() {
+              var drift = Date.now() - expected;
+              if (drift > that.interval) {
+                  // You could have some default stuff here too...
+                  if (errorFunc) errorFunc();
+              }
+              workFunc();
+              expected += that.interval;
+              timeout = setTimeout(step, Math.max(0, that.interval-drift));
+          }
+      }
+
+      // Define what to do if something goes wrong
+      var doError = function() {}
+
+
+      /**
+       * Complete a full cycle
+       */
+      async function tick(timestamp) {
+
+          var i;
+          if (start === undefined) {
+              start = timestamp;
+          }
+
+          // calculate elapsed time since last callback
+          const elapsed = timestamp-start;
+          start = timestamp;
+
+          // execute the number of instructions we should have 
+          // run since the last callback /2 for the 2ms target
+          for (i = 0; i < elapsed/FREQUENCY; i++) { 
+            execute_cycle();
+          }
+
+          // update the display
+          update_display(imageData.data);
+          ctx.putImageData(imageData, 0, 0);  
+
+          window.requestAnimationFrame(tick);
+      }
+
 
 
       /**
@@ -146,16 +209,17 @@
         document.addEventListener('keyup', key_press_callback);
         document.addEventListener('keydown', key_press_callback);
 
-        /**
-         * Setup clock speed, Chip8 clock speed is 540HZ 
-         * which is ~1.85 milliseconds between ticks
-         */
-        window.setInterval(execute_cycle, 2);
 
         /**
-         * Begin redrawing the screen
+         * Begin the cycles
          */
-        window.requestAnimationFrame(display_callback);
+        window.requestAnimationFrame(tick);
+
+        /**
+         * Timers, @ 60 Hz = 16 ms
+         */
+        var timers = new AdjustingInterval(update_timers, 16, doError);
+        timers.start();
       }
       run();
     </script>
