@@ -38,5 +38,5 @@ python3 -m http.server
 [codecov]: https://img.shields.io/codecov/c/github/landhb/rchip8?style=flat-square
 [codecov-url]: https://codecov.io/gh/landhb/rchip8
 
-[build]: https://img.shields.io/github/workflow/status/landhb/rchip8/Build/master?style=flat-square
+[build]: https://img.shields.io/github/actions/workflow/status/landhb/rchip8/build.yml?branch=master&style=flat-square
 [build-url]: https://github.com/landhb/rchip8/actions?query=workflow%3ABuild
